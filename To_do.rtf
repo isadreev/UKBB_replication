@@ -1,0 +1,43 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf600
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 To do:\
+\
+1. Can we add monte carlo standard errors to the figure, i.e. does UMVCUE have smaller standard error than replication?\
+2. Better labelling\
+\
+\
+\
+Conclusion - How to use this for MR?\
+\
+- Winner\'92s curse is an issue\
+- Sample overlap is an issue\
+- Weak instrument bias is an issue\
+\
+Recommendation - either do\
+\
+- external discovery; ukbb replication; ukbb outcome\
+- ukbb discovery; ukbb replication; external outcome\
+\
+??? - external discovery; external replication; ukbb outcome\
+??? - external discovery; ukbb replication; external outcome\
+??? - ukbb discovery; external replication; external outcome\
+??? - ukbb discovery; external replication; ukbb outcome\
+\
+\
+\
+To do:\
+\
+1. We have used extreme simulation examples. What is a more realistic result? Can we do simulations (2) and (3) using realistic data\
+- e.g. 8 million SNPs, 10000 causal variants, explaning 50% variance, 400k samples\
+- either very slow simulations using current method or theoretical estimates not using individual level values using code that started here https://github.com/explodecomputer/simulateGP/blob/master/R/theoretical_gwas.R\
+2. Perform discovery and replication in UKBB for instruments\
+- this is where the GWAS results are `/mnt/storage/private/mrcieu/research/scratch/IGD/data/public/UKB-b-*/clump.txt`. It includes the complete GWAS summary data on ~400k samples, plus the clumped top hits. The task is to\
+1. Go back to the original 400k individual level data\
+2. Split it into two - 200k and 200k (to do this you don't change the genetic data, you just set half the phenotype value to NA)\
+3. Re-estimate the clumped effects in each of the datasets\
+}
