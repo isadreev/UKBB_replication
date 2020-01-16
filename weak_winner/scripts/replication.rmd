@@ -1,5 +1,5 @@
 ---
-  title: Exploring sample overlap simulations
+  title: Exploring sample overlap simulations (replication)
 ---
 
 ```{r}
@@ -209,30 +209,3 @@ ggsave(p1, file="replication.png", width=10, height=10)
 
 ```
 
-Conclusion - How to use this for MR?
-
-- Winner’s curse is an issue
-- Sample overlap is an issue
-- Weak instrument bias is an issue
-- if there is overlap with the replication then this is as good as having an independent outcome dataset
-- any overlap of the outcome with the discovery leads to problems
-- higher overlap with the discovery is worse (e.g. if there is partial overlap with discovery and replication, this is better than complete overlap with discovery)
-
-
-- one sample case (exposure and outcome data from the exposure discovery dataset)
-	- this follows standard weak instrument bias - towards the confounder when there is sample overlap, towards the null when there is no sample overlap, in between when there is a mixture of sample overlap and no sample overlap (both_overlap)
-
-- replication exposure data 
-
-
-- umvcue correction mimics the replication-only result
-
-Recommendation - either do
-
-- external discovery; ukbb replication; ukbb outcome
-- ukbb discovery; ukbb replication; external outcome
-
-??? - external discovery; external replication; ukbb outcome
-??? - external discovery; ukbb replication; external outcome
-??? - ukbb discovery; external replication; external outcome
-??? - ukbb discovery; external replication; ukbb outcome

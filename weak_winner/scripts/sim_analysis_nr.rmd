@@ -1,0 +1,213 @@
+---
+title: Is sample overlap a problem in two-sample Mendelian randomisation?
+author: Ildar Sadreev
+output: html_document
+---
+
+```{r, echo=FALSE}
+library(knitr)
+opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE, cache.lazy = FALSE)
+```
+
+```{r}
+library(TwoSampleMR)
+library(tidyverse)
+library(RColorBrewer)
+library('MRInstruments')
+library(ggpubr)
+my_orange = brewer.pal(n = 9, "Oranges")[4:9]
+```
+
+
+```{r}
+# Load and prepare the data from simulations for the analysis
+load("../files/results/sim_overlap_nr.rdata")
+pp <- param
+
+# Functions required for plotting
+# cases when overlap only with D
+disc <- function(pp) {
+  param <- subset(pp, offset >= 0 & offset <= 10000)
+  param$overlap <- param$offset / 10000
+  return(param)
+}
+# cases when overlap only with R
+repl <- function(pp) {
+  param <- subset(pp, offset >= 20000 & offset <= 30000)
+  param$overlap <- 1 - (param$offset-20000) / 10000
+  return(param)
+}
+# cases when overlap both D and R
+discrepl <- function(pp) {
+  param <- subset(pp, offset >= 10000 & offset <= 20000)
+  param$overlap <- (param$offset-10000) / 10000
+  return(param)
+}
+# function for plotting (q is "all" or "sig") (Fig 1A)
+plotbias <- function(param,q) {
+  temp <- group_by(param, nid, overlap, gx, xy, ux, uy, what) %>% summarise()
+  temp$sim <- 1:nrow(temp)
+  param <- inner_join(param, temp) %>% as.tibble
+  # temp <- filter(param, fval11 > 9) %>% group_by(sim, f, xy, uy, overlap) %>%
+  temp <- param %>% group_by(sim, gx, xy, uy, overlap, what) %>%
+    summarise(
+      n=sum(!is.na(b)),
+      nsnp=mean(nsnp_inc),
+      se=sd(b, na.rm=TRUE) / sqrt(sum(!is.na(b))),
+      b=mean(b, na.rm=TRUE),
+      f = mean(mean_f, na.rm=TRUE)
+    )
+  
+  fvals <- filter(param, what=="all") %>% group_by(gx) %>% summarise(fval=round(mean(mean_f, na.rm=TRUE), 1))
+  
+  templ <- gather(temp, key="key", value="value", -c(gx, xy, uy, sim, n, overlap, what))
+  t1 <- templ %>% filter(key == "b")
+  t2 <- templ %>% filter(key == "se")
+  names(t2)[names(t2) == "value"] <- "se"
+  templ <- inner_join(t1, t2 %>% ungroup %>% select(sim, se), by=c("sim"))
+  templ <- inner_join(templ, fvals)
+  
+  # Plot
+  ggplot(templ %>% filter(key %in% c("b"), fval != 4.3, what %in% q), aes(x=overlap, y=value)) +
+    geom_point(aes(colour=as.factor(fval), shape=what)) +
+    geom_errorbar(aes(colour=as.factor(fval), linetype=what, ymin=value - se * 1.96, ymax=value + se * 1.96), width=0) +
+    geom_hline(aes(yintercept=xy)) +
+    geom_line(aes(colour=as.factor(fval), linetype=what)) +
+    facet_grid(paste("b_xy =", xy) ~ paste("b_uy =", uy), scale="free_y") +
+    scale_colour_manual(values=my_orange) +
+    labs(x="Proportion sample overlap", y="Mean effect estimate", colour="Mean instrument\nF value", shape="Instrument\nselection", linetype="Instrument\nselection") +
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5))
+}
+
+
+# function for plotting (q is "all" or "sig") (Fig 1B)
+plotbias1 <- function(param) {
+  
+  param <- subset(param,param$uy!=1)
+  
+  temp <- group_by(param, nid, overlap, gx, xy, ux, uy, what) %>% summarise()
+  temp$sim <- 1:nrow(temp)
+  param <- inner_join(param, temp) %>% as.tibble
+  # temp <- filter(param, fval11 > 9) %>% group_by(sim, f, xy, uy, overlap) %>%
+  temp <- param %>% group_by(sim, gx, xy, uy, overlap, what) %>%
+    summarise(
+      n=sum(!is.na(b)),
+      nsnp=mean(nsnp_inc),
+      se=sd(b, na.rm=TRUE) / sqrt(sum(!is.na(b))),
+      b=mean(b, na.rm=TRUE),
+      f = mean(mean_f, na.rm=TRUE)
+    )
+  
+  fvals <- filter(param, what=="all") %>% group_by(gx) %>% summarise(fval=round(mean(mean_f, na.rm=TRUE), 1))
+  
+  templ <- gather(temp, key="key", value="value", -c(gx, xy, uy, sim, n, overlap, what))
+  t1 <- templ %>% filter(key == "b")
+  t2 <- templ %>% filter(key == "se")
+  names(t2)[names(t2) == "value"] <- "se"
+  templ <- inner_join(t1, t2 %>% ungroup %>% select(sim, se), by=c("sim"))
+  templ <- inner_join(templ, fvals)
+  
+  # Plot
+  ggplot(templ %>% filter(key %in% c("b"), !(fval %in% c(4.3,73.4,99.4))), aes(x=overlap, y=value)) +
+    geom_point(aes(colour=as.factor(what), shape=what)) +
+    geom_errorbar(aes(colour=as.factor(what), linetype=what, ymin=value - se * 1.96, ymax=value + se * 1.96), width=0) +
+    geom_hline(aes(yintercept=xy)) +
+    geom_line(aes(colour=as.factor(what), linetype=what)) +
+    facet_grid(paste("F val =", fval) ~ paste("b_uy =", uy)) +
+    labs(x="Proportion sample overlap", y="Mean effect estimate", colour="Instrument\nselection", shape="Instrument\nselection", linetype="Instrument\nselection") +
+    theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5))
+}
+```
+
+
+## Overview
+
+This analysis is motivated by the question of whether instruments obtained from GWAS are really 'strong'. We might naively believe that they are because we impose a strict threshold of p < 5e-8 ($F \approx 27$) in order to detect them. But there is a very strong winner's curse effect acting on many of the instruments, which means we don't necessarily know that these instruments are strong. Are weak instruments that 'appear' strong (due to winner's curse) even worse than weak instruments that are known to be weak?
+
+There are three stages to this analysis.
+
+1. Establish simulations that demonstrate instrument strength and sample overlap lead interact to give different patterns of bias, and this is related to the level of confounding
+2. Demonstrate that winner's curse substantially worsens the problem
+3. Look at practical strategies to overcome the issue by using replication of the discovery GWAS
+
+## 1. Sample overlap and instrument strength
+
+Simulations were conducted to evaluate the extent to which instrument strength attenuated the bias due to sample overlap. Simulation parameters were identical to those in Burgess et al 2016 except we also included larger SNP effect sizes that will produce F statistics that are more in line with those seen in GWAS. The basic model that we are simulating is:
+
+$$
+\begin{aligned}
+x_i &= \textbf{G}_i\textbf{b}_{gx} + b_{ux} u_{i} + e_i \\
+y_i &= \beta x_i + b_{uy} u_{i} + \epsilon_i
+\end{aligned}
+$$
+where $\textbf{G}$ is a matrix of genotype values for $m$ SNPs and $\textbf{b}$ is a vector of effects for each SNP on the exposure, $\beta$ is the causal effect of the exposure $x$ on the outcome $y$. For these simulations we used $m = 20$, and set $b$ and $e$ such that the variance explained by all the SNPs on $x$ was the same for each SNP, and in total $r^2_{gx} \in \{0.04, 0.08, ..., 0.24\}$. Hence, we have a set of different scenarios ranging from all instruments being weak to all instruments being very strong. The causal effect was set to $\beta=0.2$. Confounder values were set such that $b_{ux} = 1$ for all simulations, and $b_{uy} \in \{0, 0.6, 1, 2\}$, hence for some scenarios there was no confounding, and others there was strong confounding (much stronger than the causal effect of x on y). In order to generate different scenarios of sample overlap, we simulated a population of 40000 individuals, and selected 10000 for the exposure and 10000 for the outcome, varying the extent to which the same individuals appeared in both. Each simulation scenario was repeated 10000 times.
+
+Once the data is simulated, we estimate the SNP effects on x and y, and perform IVW to obtain an estimate of $\beta$.
+
+The results from the simulations are plotted below
+
+```{r, fig.cap="For each simulation scenario we averaged the causal effect estimate from 10000 replicates. Columns of boxes represent the confounding value that was simulated, and the x axis represnts the proportion of the sample overlap. Colours of lines represent the average F statistic that was simulated for the SNP effects on the exposure. The true causal effect was simulated to be 0.2, shown by the horizontal black line."}
+# cases when overlap only with D
+# subset the D
+param <- disc(pp)
+# plotting
+plotbias(param,"all")
+```
+
+As seen in Burgess et al 2016, we find that weak instruments lead to bias towards the null when there is no sample overlap, and towards the observational estimate when there is complete sample overlap. The observational estimate and the true causal estimate are identical when confounding is 0, so weak instrument bias has no influence at that point. The weaker the instruments, the larger the bias. 
+
+
+## 2. Does the winner's curse make the weak instrument bias problem in MR worse?
+
+Here the same simulations are conducted, but now we impose a significance threshold for instruments to be included for the MR analysis. For each simulation we create 20 SNPs, and in the previous set of results we used all of them to estimate the causal effect of x on y. Now, we only allow SNPs to be used if they reach a significance threshold of 5e-8. 
+
+```{r, fig.cap="Comparison of simulations that do or do not impose a significance threshold for instrument selection (colours of lines). Rows of boxes represent the average F value of the instrument strengths, and columns represent the confounder values. Proportion of sample overlap varies on the x axis, and the average estimate of the causal effect across 10000 simulations is shown on the y axis, where the causal effect simulated is 0.2."}
+# cases when overlap only with D
+# subset the D
+param <- disc(pp)
+# plotting
+plotbias1(param)
+```
+
+The bias was not noticable for Fval=73.4 and Fval=99.4.
+
+These results demonstrate that the problem of weak instrument bias is substantially exacerbated by winner's curse.
+
+
+## 3. Strategies for overcoming the weak instrument / winner's curse / sample overlap issues
+
+Different SNP exposure effects and SNP outcome effects were taken into account.
+
+The following strategies were tested:
+
+1. The SNP exposure effects:
+  1. Only discovery data
+  2. Only replication
+  3. UMVCUE combination of discovery and replication
+2. The SNP outcome effects:
+  1. Sample overlap with the discovery data
+  2. Sample overlap with the replication data
+  3. Sample overlap with half discovery, half replication
+  4. Completely independent sample
+
+![Simulations for different scenarios of SNP exposure and SNP outcome effect. Columns represent different confounder values. The corresponding scenarios of sample overlap are shown on the x axis, and the average estimate of the causal effect across 10000 simulations is shown on the y axis, where the causal effect simulated is 0.2 (black dotted line). Top row shows the results for all SNPs whereas the bottom row shows the results for the significant SNPs that pass the significance threshold of 5e-8. The red arrow indicates the dataset that was used as the exposure.](../files/Paper/Figures/Fig_1_1.png)
+
+Conclusions
+
+1. Impact of instrument selection
+Winner's curse has a big impact on the average bias due to weak instruments and sample overlap
+
+2. Impact of replication dataset
+Always seems to inflate the causal effect estimate. This is because winner's curse has led to understimation, where the Wald ratio of $b_{gy} / b_{gx}$ will be biased downwards when $b_{gx}$ is overestimated.
+
+3. Impact of UMVCUE
+This seems to give almost identical results to the replication scenarios, with similar error values across the simulations suggesting that it does capture the unbiased replication $b_{gx}$ estimate correctly but is not massively improving the precision over what the replication data is providing. Is this because the SNP-exposure precision is not being used in the IVW estimate? If we used modified second order weights, it would be used and might have a bigger influence.
+
+4. Impact of sample overlap
+Any sample overlap between the discovery and the outcome has large bias. The best case scenario is where there is the SNP-outcome estimate is obtained from a sample with no overlap with the discovery or replication, and we have replicated SNP-exposure estimates. Also performing well is when there is sample overlap between the replication dataset and the SNP-outcome dataset. This means that either a three sample scenario or a two sample scenario is most reliable where e.g.
+
+- three sample scenario: ukbb (first half) discovery; ukbb (other half) replication; external outcome
+- two sample scenario using only ukbb: ukbb (first half) discovery; ukbb (other half) replication; ukbb (other half) outcome
+- two sample scenario including an external dataset: external discovery; ukbb (full) replication; ukbb (full) outcome
+- three sample scenario: external discovery; external independent replication; ukbb outcome
+- two/three sample scenario: ukbb discovery; external replication; external outcome

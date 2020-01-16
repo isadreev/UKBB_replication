@@ -1,0 +1,3 @@
+# Weak instrument bias simulations
+
+Instructions on how to reproduce the results ....
