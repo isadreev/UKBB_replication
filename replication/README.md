@@ -48,11 +48,11 @@ Rscript
 
 ```
 python run_replications.py \
-	ukb-b-2000 \
-	../data/dict.rdata \
-	/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod \
-	/path/to/results/discoveryids.txt \
-	/path/to/results \
+	--ukbbid ukb-b-17314 \
+	--dictionaryfile ../data/dict.rdata \
+	--phesantdir /mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod \
+	--discoveryids /path/to/results/discoveryids.txt \
+	--outdir ../results \
 	/mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/ \
 	... all other data files needed for gwas
 ```
