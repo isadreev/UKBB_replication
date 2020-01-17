@@ -1,16 +1,26 @@
 # Perform replication of ukbb gwas hits
 
 
-1. map ukb-b IDs to phesant ids
+1. map ukb-b IDs to phesant ids, create a `phenotype dictionary`
 
 ```
 cd scripts
 Rscript phen_ID_mapping.r
+./get_headers.sh
+Rscript make_phenotype_dictionary.r
 ```
 
-2. 
+2. Create a script which creates a phenotype for Bolt LMM
 
+Input: 
+- ukb-b id
+- phenotype dictionary (step 1)
+Output:
+- Phenotype file ready for GWAS analysis
 
+```
+Rscript 
+```
 
 The files that go into the GWAS are:
 
