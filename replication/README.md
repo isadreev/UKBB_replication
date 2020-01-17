@@ -10,7 +10,16 @@ Rscript phen_ID_mapping.r
 Rscript make_phenotype_dictionary.r
 ```
 
-2. Create a script which creates a phenotype for Bolt LMM
+2. Choose individuals to be in discovery and replication
+
+```
+Rscript choose_discovery_ids.r \
+/mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample \
+100 \
+/path/to/results/discoveryids.txt
+```
+
+3. Create a script which creates a phenotype for Bolt LMM
 
 Input: 
 - ukb-b id
@@ -21,6 +30,38 @@ Output:
 ```
 Rscript 
 ```
+
+
+/path/to/results/
+				 ukb-b-2000/
+				 			phen.txt
+				 			disc.txt
+				 			repl.txt
+				 ukb-b-2001/
+				 			phen.txt
+				 			disc.txt
+				 			repl.txt
+
+
+
+4. Run the replication
+
+```
+python run_replications.py \
+	ukb-b-2000 \
+	../data/dict.rdata \
+	/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod \
+	/path/to/results/discoveryids.txt \
+	/path/to/results \
+	/mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/ \
+	... all other data files needed for gwas
+```
+
+
+
+TODO:
+create run_replications.sh and test it works with one phenotype
+
 
 The files that go into the GWAS are:
 
