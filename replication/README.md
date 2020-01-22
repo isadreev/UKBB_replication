@@ -16,7 +16,7 @@ Rscript make_phenotype_dictionary.r
 Rscript choose_discovery_ids.r \
 /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample \
 100 \
-/path/to/results/discoveryids.txt
+../data/discoveryids.txt
 ```
 
 3. Create a script which creates a phenotype for Bolt LMM
@@ -28,8 +28,12 @@ Output:
 - Phenotype file ready for GWAS analysis
 
 ```
-Rscript 
+Rscript make_phenotype_file.r \
 ```
+
+
+args=c("ukb-b-17314","../data/dict.rdata","/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod","../data/discoveryids.txt","../data/")
+
 
 
 /path/to/results/
@@ -47,20 +51,27 @@ Rscript
 4. Run the replication
 
 ```
-python run_replications.py \
+python run_replication.py \
 	--ukbbid ukb-b-17314 \
 	--dictionaryfile ../data/dict.rdata \
 	--phesantdir /mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod \
-	--discoveryids /path/to/results/discoveryids.txt \
-	--outdir ../results \
-	/mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/ \
+	--discoveryids ../data/discoveryids.txt \
+	--resultdir ../results \
+	--bgen /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/ \
+	--samplefile /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data_chr1-22.sample
+	--bfile /mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/bolt_bfile/grm6_european_filtered_ieu
+
+
 	... all other data files needed for gwas
 ```
 
 
+from types import SimpleNamespace 
+
+args = SimpleNamespace(ukbbid='ukb-b-17314',dictionaryfile='../data/dict.rdata',phesantdir='/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod',discoveryids='../data/discoveryids.txt',resultdir='../results',bgen='/mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/',samplefile='/mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data_chr1-22.sample',bfile='/mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/bolt_bfile/grm6_european_filtered_ieu')
 
 TODO:
-create run_replications.sh and test it works with one phenotype
+create run_replications.py and test it works with one phenotype
 
 
 The files that go into the GWAS are:

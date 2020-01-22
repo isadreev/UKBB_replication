@@ -1,5 +1,6 @@
 library(dplyr)
 
+setwd("../data")
 a <- read.table("Phenotypes.txt", he=T, stringsAsFactors=FALSE, comment="*")
 b <- read.table("temp2", sep="\t", stringsAsFactors=FALSE, comment="*")
 phesant <- lapply(1:nrow(b), function(x) {
@@ -10,7 +11,7 @@ names(phesant) <- b$V1
 l <- list()
 for(i in 1:nrow(a))
 {
-	message(i)
+	#message(i)
 	phesantid <- a$ukbbid[i]
 	col <- which(sapply(phesant, function(x) phesantid %in% x))
 	phesantfile <- b$V1[col]
@@ -19,6 +20,6 @@ for(i in 1:nrow(a))
 
 dict <- bind_rows(l)
 
-length(unique(l$phesantid))
-length(unique(l$ukbbid))
+#length(unique(l$phesantid))
+#length(unique(l$ukbbid))
 save(dict, file="../data/dict.rdata")

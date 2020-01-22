@@ -31,5 +31,9 @@ b$replication <- b$discovery
 b$discovery[! b$IID %in% dids] <- NA
 b$replication[b$IID %in% dids] <- NA
 
+# Here we assume all discovery are 1, however there are 2854 elements (0.6%) where it is NA or 2:
+#c=as.data.frame(b)
+#c[!c[,3]==1,]
+
 outfile <- file.path(output, "phen.txt")
 write.table(b, file=outfile, row=F, col=F, qu=F)

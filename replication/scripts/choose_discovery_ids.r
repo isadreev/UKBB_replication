@@ -1,5 +1,7 @@
 library(data.table)
 
+setwd("../data")
+
 args <- commandArgs(T)
 gwas_samplefile <- args[1]
 randomseed <- as.numeric(args[2])
