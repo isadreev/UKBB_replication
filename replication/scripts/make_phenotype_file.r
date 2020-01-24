@@ -1,10 +1,12 @@
+library(dplyr)
 args <- commandArgs(T)
 
 ukbbid <- args[1]
 dictionaryfile <- args[2]
 phesantdir <- args[3]
-discoveryids <- args[4]
-output <- args[5]
+linkerfile <- args[4]
+discoveryids <- args[5]
+output <- args[6]
 
 # Extract from the phesant file:
 # FID IID phenotype
@@ -20,20 +22,19 @@ library(data.table)
 row <- which(dict$ukbbid == ukbbid)
 a <- fread(dict$phesantfile[row], header=TRUE)
 b <- subset(a, select=c("FID", "IID", dict$phesantid[row]))
+names(b)[3] <- "discovery"
+linker <- fread(linkerfile, header=FALSE)
 
+b <- merge(b, linker, by.x="FID", by.y="app") %>%
+	dplyr::select(FID=ieu, IID=ieu, discovery=discovery)
 
 # read in discovery ids
 dids <- scan(discoveryids, what=character())
 
 # Set NAs for discovery and replication
-names(b)[3] <- "discovery"
 b$replication <- b$discovery
 b$discovery[! b$IID %in% dids] <- NA
 b$replication[b$IID %in% dids] <- NA
-
-# Here we assume all discovery are 1, however there are 2854 elements (0.6%) where it is NA or 2:
-#c=as.data.frame(b)
-#c[!c[,3]==1,]
 
 outfile <- file.path(output, "phen.txt")
 write.table(b, file=outfile, row=F, col=F, qu=F)
