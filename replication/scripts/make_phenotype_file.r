@@ -23,7 +23,7 @@ row <- which(dict$ukbbid == ukbbid)
 a <- fread(dict$phesantfile[row], header=TRUE)
 b <- subset(a, select=c("FID", "IID", dict$phesantid[row]))
 names(b)[3] <- "discovery"
-linker <- fread(linkerfile, header=FALSE)
+linker <- fread(linkerfile, header=TRUE)
 
 b <- merge(b, linker, by.x="FID", by.y="app") %>%
 	dplyr::select(FID=ieu, IID=ieu, discovery=discovery)
