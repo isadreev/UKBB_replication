@@ -29,6 +29,12 @@ Output:
 
 ```
 Rscript make_phenotype_file.r \
+	ukb-b-17314 \
+	../data/dict.rdata \
+	/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod \
+	/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/linker_app15825.csv \
+	../data/discoveryids.txt \
+	../results/ukb-b-17314
 ```
 
 

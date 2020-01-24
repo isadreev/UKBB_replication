@@ -8,6 +8,8 @@ linkerfile <- args[4]
 discoveryids <- args[5]
 output <- args[6]
 
+args
+
 # Extract from the phesant file:
 # FID IID phenotype
 
@@ -26,7 +28,7 @@ names(b)[3] <- "discovery"
 linker <- fread(linkerfile, header=TRUE)
 
 b <- merge(b, linker, by.x="FID", by.y="app") %>%
-	dplyr::select(FID=ieu, IID=ieu, discovery=discovery)
+	{tibble(FID=.$ieu, IID=.$ieu, discovery=.$discovery)}
 
 # read in discovery ids
 dids <- scan(discoveryids, what=character())
