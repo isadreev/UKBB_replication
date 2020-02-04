@@ -39,4 +39,4 @@ b$discovery[! b$IID %in% dids] <- NA
 b$replication[b$IID %in% dids] <- NA
 
 outfile <- file.path(output, "phen.txt")
-write.table(b, file=outfile, row=F, col=F, qu=F)
+write.table(b, file=outfile, row=F, col=T, qu=F)
