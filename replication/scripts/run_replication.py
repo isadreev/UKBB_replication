@@ -56,8 +56,6 @@ path2script = 'make_phenotype_file.r'
 #subprocess.call([command, args1, path2script], shell=True)
 subprocess.Popen([command, path2script]+args1)
 
-exit()
-
 # this produces /path/to/results/$ukbid/phen.txt
 
 # now run bolt on discovery data
