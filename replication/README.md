@@ -27,21 +27,6 @@ Input:
 Output:
 - Phenotype file ready for GWAS analysis
 
-```
-Rscript make_phenotype_file.r \
-	ukb-b-17314 \
-	../data/dict.rdata \
-	/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod \
-	/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/linker_app15825.csv \
-	../data/discoveryids.txt \
-	../results/ukb-b-17314
-```
-
-
-args=c("ukb-b-17314","../data/dict.rdata","/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod","../data/discoveryids.txt","../data/")
-
-
-
 /path/to/results/
 				 ukb-b-2000/
 				 			phen.txt
@@ -63,33 +48,25 @@ python run_replication.py \
 	--phesantdir /mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod \
 	--discoveryids ../data/discoveryids.txt \
 	--resultdir ../results \
-	--bgen /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/ \
-	--samplefile /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample
-	--bfile /mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/bolt_bfile/grm6_european_filtered_ieu
-
-python run_replication.py \
-	--ukbbid ukb-b-17314 \
-	--dictionaryfile ../data/dict.rdata \
-	--phesantdir /mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod \
-	--discoveryids ../data/discoveryids.txt \
-	--resultdir ../results \
 	--bolt_exe_dir /mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4 \
 	--bfile /mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/bolt_bfile/grm6_european_filtered_ieu \
-	--bgenFile /mnt/storage/home/kf19639/repo/UKBB_replication/replication/data/joined.bgen \
+	--bgenDir /mnt/storage/home/kf19639/repo/UKBB_replication/replication/data \
 	--boltSampleFile /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample \
 	--geneticMapFile /mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4/tables/genetic_map_hg19_withX.txt.gz\
 	--bgenMinMaf 0.001 \
 	--covarFile /mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/covariates/data.covariates_ieu.bolt.txt \
-	--qcovarCol 1,2 \
+	--qcovarCol '{sex,chip}' \
 	--LDscoresFile /mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4/tables/LDSCORE.1000G_EUR.tab.gz \
 	--numThreads 3 \
-	--modelSnps /mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/model_snps_for_grm/grm6_snps.prune.in
+	--modelSnps /mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/model_snps_for_grm/grm6_snps.prune.in \
+	--linker /mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/linker_app15825.csv
 ```
 
 
 from types import SimpleNamespace 
 
-args = SimpleNamespace(ukbbid='ukb-b-17314', dictionaryfile='../data/dict.rdata', phesantdir='/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod', discoveryids='../data/discoveryids.txt', resultdir='../results', bolt_exe_dir= '/mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4', bfile='/mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/bolt_bfile/grm6_european_filtered_ieu', bgenFile='/mnt/storage/home/kf19639/repo/UKBB_replication/replication/data/joined.bgen', boltSampleFile='/mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample', geneticMapFile='/mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4/tables/genetic_map_hg19_withX.txt.gz', bgenMinMaf='0.001', covarFile='/mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/covariates/data.covariates_ieu.bolt.txt', qcovarCol='1,2', LDscoresFile='/mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4/tables/LDSCORE.1000G_EUR.tab.gz', numThreads='3', modelSnps='/mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/model_snps_for_grm/grm6_snps.prune.in')
+args = SimpleNamespace(ukbbid='ukb-b-17314', dictionaryfile='../data/dict.rdata', phesantdir='/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod', discoveryids='../data/discoveryids.txt', resultdir='../results', bolt_exe_dir= '/mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4', bfile='/mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/bolt_bfile/grm6_european_filtered_ieu', bgenDir='/mnt/storage/home/kf19639/repo/UKBB_replication/replication/data', boltSampleFile='/mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample', geneticMapFile='/mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4/tables/genetic_map_hg19_withX.txt.gz', bgenMinMaf='0.001', covarFile='/mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/covariates/data.covariates_ieu.bolt.txt', qcovarCol='{sex,chip}', LDscoresFile='/mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4/tables/LDSCORE.1000G_EUR.tab.gz', 
+umThreads='3', modelSnps='/mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/model_snps_for_grm/grm6_snps.prune.in', linker='/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/linker_app15825.csv')
 
 TODO:
 create run_replications.py and test it works with one phenotype
@@ -171,40 +148,98 @@ snplist.txt
 
 a. from each chromosome
 
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr01.bgen -incl-rsids snplist.txt -og extract.chr01.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr02.bgen -incl-rsids snplist.txt -og extract.chr02.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr03.bgen -incl-rsids snplist.txt -og extract.chr03.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr04.bgen -incl-rsids snplist.txt -og extract.chr04.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr05.bgen -incl-rsids snplist.txt -og extract.chr05.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr06.bgen -incl-rsids snplist.txt -og extract.chr06.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr07.bgen -incl-rsids snplist.txt -og extract.chr07.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr08.bgen -incl-rsids snplist.txt -og extract.chr08.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr09.bgen -incl-rsids snplist.txt -og extract.chr09.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr10.bgen -incl-rsids snplist.txt -og extract.chr10.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr11.bgen -incl-rsids snplist.txt -og extract.chr11.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr12.bgen -incl-rsids snplist.txt -og extract.chr12.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr13.bgen -incl-rsids snplist.txt -og extract.chr13.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr14.bgen -incl-rsids snplist.txt -og extract.chr14.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr15.bgen -incl-rsids snplist.txt -og extract.chr15.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr16.bgen -incl-rsids snplist.txt -og extract.chr16.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr17.bgen -incl-rsids snplist.txt -og extract.chr17.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr18.bgen -incl-rsids snplist.txt -og extract.chr18.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr19.bgen -incl-rsids snplist.txt -og extract.chr19.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr20.bgen -incl-rsids snplist.txt -og extract.chr20.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr21.bgen -incl-rsids snplist.txt -og extract.chr21.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr22.bgen -incl-rsids snplist.txt -og extract.chr22.bgen
-qctool -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chrX.bgen -incl-rsids snplist.txt -og extract.chrX.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr01.bgen -incl-rsids snplist.txt -og extract.chr01.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr02.bgen -incl-rsids snplist.txt -og extract.chr02.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr03.bgen -incl-rsids snplist.txt -og extract.chr03.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr04.bgen -incl-rsids snplist.txt -og extract.chr04.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr05.bgen -incl-rsids snplist.txt -og extract.chr05.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr06.bgen -incl-rsids snplist.txt -og extract.chr06.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr07.bgen -incl-rsids snplist.txt -og extract.chr07.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr08.bgen -incl-rsids snplist.txt -og extract.chr08.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr09.bgen -incl-rsids snplist.txt -og extract.chr09.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr10.bgen -incl-rsids snplist.txt -og extract.chr10.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr11.bgen -incl-rsids snplist.txt -og extract.chr11.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr12.bgen -incl-rsids snplist.txt -og extract.chr12.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr13.bgen -incl-rsids snplist.txt -og extract.chr13.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr14.bgen -incl-rsids snplist.txt -og extract.chr14.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr15.bgen -incl-rsids snplist.txt -og extract.chr15.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr16.bgen -incl-rsids snplist.txt -og extract.chr16.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr17.bgen -incl-rsids snplist.txt -og extract.chr17.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr18.bgen -incl-rsids snplist.txt -og extract.chr18.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr19.bgen -incl-rsids snplist.txt -og extract.chr19.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr20.bgen -incl-rsids snplist.txt -og extract.chr20.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr21.bgen -incl-rsids snplist.txt -og extract.chr21.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr22.bgen -incl-rsids snplist.txt -og extract.chr22.bgen
+qctool -bgen-bits 8 -g /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chrX.bgen -incl-rsids snplist.txt -og extract.chrX.bgen
 
 
 
-qctool -g extract.chr01.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr02.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr03.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr04.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr05.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr06.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr07.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr08.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr09.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr10.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr11.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr12.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr13.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr14.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr15.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr16.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr17.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr18.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr19.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr20.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr21.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr22.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chrX.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -og joined.bgen -os joined.sample
+qctool -bgen-bits 16 -g extract.chr01.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr02.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr03.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr04.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr05.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr06.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr07.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr08.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr09.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr10.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr11.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr12.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr13.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr14.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr15.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr16.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr17.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr18.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr19.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr20.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr21.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr22.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chrX.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -og joined.bgen -os joined.sample
 
 
+
+
+
+
+qctool -g extract.chr01.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr02.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr03.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr04.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr05.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr06.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr07.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr08.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr09.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr10.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr11.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr12.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr13.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr14.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr15.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr16.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr17.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr18.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr19.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr20.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr21.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -g extract.chr22.bgen -s /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample -og joined.bgen -os joined.sample
 
 
 
 
 
 3. Only use this new bgenfile in your run_replication.py
+
+
+
+
+## To run gwas on bc4
+
+Use Snakemake. This will submit the jobs to slurm. You need to have snakemake running in a 'screen' session
+
+To enter screen:
+
+```
+screen
+```
+
+to come out of screen, while it's still running
+
+```
+ctrl+a, d
+```
+
+to go back into screen
+
+```
+screen -r
+```
+
+to list screen sessions
+
+```
+screen -list
+```
+
+
+So when you're in a screen session, to run the snakemake process:
+
+```
+module add languages/anaconda3/5.2.0-tflow-1.11
+snakemake -prk \
+-j 400 \
+--cluster-config bc4-cluster.json \
+--cluster "sbatch \
+  --job-name={cluster.name} \
+  --partition={cluster.partition} \
+  --nodes={cluster.nodes} \
+  --ntasks-per-node={cluster.ntask} \
+  --cpus-per-task={cluster.ncpu} \
+  --time={cluster.time} \
+  --mem={cluster.mem} \
+  --output={cluster.output}"
+```
+
+
+
 
 
