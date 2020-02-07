@@ -21,7 +21,7 @@ rule run_gwas:
 		"../results/{data}/replication.statsfile.txt.gz"
 	shell:
 		"python run_replication.py \
-			--ukbbid {data} \
+			--ukbbid {wildcards.data} \
 			--dictionaryfile ../data/dict.rdata \
 			--phesantdir /mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod \
 			--discoveryids ../data/discoveryids.txt \
