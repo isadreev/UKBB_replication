@@ -1,8 +1,13 @@
+import os
+
+os.makedirs('job_reports', exist_ok=True)
 
 # define the list of datasets that we want to make
 
 with open("../data/ukb-b-idlist.txt", 'r') as f:
 	DATA = f.readlines()
+
+
 
 DATA = [x.strip().lower() for x in DATA]
 
