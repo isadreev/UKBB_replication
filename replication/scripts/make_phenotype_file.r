@@ -21,6 +21,8 @@ args
 load(dictionaryfile)
 library(data.table)
 
+dir.create(output, recursive=TRUE, showWarnings=FALSE)
+
 row <- which(dict$ukbbid == ukbbid)
 a <- fread(dict$phesantfile[row], header=TRUE)
 b <- subset(a, select=c("FID", "IID", dict$phesantid[row]))

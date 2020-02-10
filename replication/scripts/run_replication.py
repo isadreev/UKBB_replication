@@ -45,18 +45,9 @@ print(outdir)
 os.makedirs(outdir, exist_ok=True)
 
 
-# python wrapper to run this
-# use subprocess module, or something similar
-#Rscript make_phenotyoe_file.r $ukbbid $dictionaryfile $phesantdir $discoveryids $workdir $outdir
+with open(outdir + "/phen.txt", "r") as f:
+	print("phenotype file found")
 
-command = 'Rscript'
-args1 = [args.ukbbid, args.dictionaryfile, args.phesantdir, args.linker, args.discoveryids, outdir]
-path2script = 'make_phenotype_file.r'
-
-#subprocess.call([command, args1, path2script], shell=True)
-subprocess.Popen([command, path2script]+args1)
-
-# this produces /path/to/results/$ukbid/phen.txt
 
 # now run bolt on discovery data
 
