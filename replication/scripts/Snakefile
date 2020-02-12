@@ -11,9 +11,6 @@ with open("../data/ukb-b-idlist.txt", 'r') as f:
 
 DATA = [x.strip().lower() for x in DATA]
 
-DATA=DATA[0:3]
-
-
 rule all:
 	input: 
 		expand("../results/{data}/discovery.statsfile.txt.gz", data=DATA),
