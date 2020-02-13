@@ -8,8 +8,8 @@ with open("../data/ukb-b-idlist.txt", 'r') as f:
 	DATA = f.readlines()
 
 
-
 DATA = [x.strip().lower() for x in DATA]
+
 
 rule all:
 	input: 

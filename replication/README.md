@@ -189,8 +189,9 @@ So when you're in a screen session, to run the snakemake process:
 ```
 module add languages/anaconda3/5.2.0-tflow-1.11
 
+source ~/.bash_profile
+
 snakemake -prk \
---unlock \
 -j 400 \
 --cluster-config bc4-cluster.json \
 --cluster "sbatch \

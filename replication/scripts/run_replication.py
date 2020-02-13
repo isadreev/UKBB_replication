@@ -3,7 +3,6 @@
 import os
 import argparse
 import subprocess
-import config
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--ukbbid', help="UKB-b-id")
