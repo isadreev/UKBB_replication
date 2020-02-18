@@ -7,14 +7,14 @@ os.makedirs('job_reports', exist_ok=True)
 with open("../data/ukb-b-idlist.txt", 'r') as f:
 	DATA = f.readlines()
 
+col=["discovery", "replication"]
 
 DATA = [x.strip().lower() for x in DATA]
 
 
 rule all:
 	input: 
-		expand("../results/{data}/discovery.statsfile.txt.gz", data=DATA),
-		expand("../results/{data}/replication.statsfile.txt.gz", data=DATA)
+		expand("../results/{data}/{col}.statsfile.txt.gz", col=col, data=DATA)
 
 
 rule create_phen:
@@ -38,8 +38,7 @@ rule run_gwas:
 	input:
 		"../results/{data}/phen.txt"
 	output:
-		"../results/{data}/discovery.statsfile.txt.gz",
-		"../results/{data}/replication.statsfile.txt.gz"
+		"../results/{data}/{col}.statsfile.txt.gz"
 	shell:
 		"""
 python run_replication.py \
@@ -59,6 +58,7 @@ python run_replication.py \
 --LDscoresFile /mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4/tables/LDSCORE.1000G_EUR.tab.gz \
 --numThreads 3 \
 --modelSnps /mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/model_snps_for_grm/grm6_snps.prune.in \
---linker /mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/linker_app15825.csv
+--linker /mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/linker_app15825.csv \
+--column {wildcards.col}
 		"""
 

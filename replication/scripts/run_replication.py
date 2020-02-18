@@ -22,6 +22,7 @@ parser.add_argument('--LDscoresFile')
 parser.add_argument('--numThreads')
 parser.add_argument('--modelSnps')
 parser.add_argument('--linker')
+parser.add_argument('--column', help="discovery or replication")
 
 args = parser.parse_args()
 
@@ -77,10 +78,6 @@ def bolt_command(phenoName,bolt_exe_dir, bfile, bgenDir, boltSampleFile, genetic
 
 # Run this twice
 # once for discovery
-cmd = bolt_command(args.ukbbid,args.bolt_exe_dir, args.bfile, args.bgenDir, args.boltSampleFile, args.geneticMapFile, args.bgenMinMaf, outdir+"/phen.txt", "discovery", args.covarFile, args.qcovarCol, args.LDscoresFile, args.numThreads, args.modelSnps, args.resultdir)
-subprocess.run(cmd, shell=True)
-
-# for replication
-cmd = bolt_command(args.ukbbid,args.bolt_exe_dir, args.bfile, args.bgenDir, args.boltSampleFile, args.geneticMapFile, args.bgenMinMaf, outdir+"/phen.txt", "replication", args.covarFile, args.qcovarCol, args.LDscoresFile, args.numThreads, args.modelSnps, args.resultdir)
+cmd = bolt_command(args.ukbbid,args.bolt_exe_dir, args.bfile, args.bgenDir, args.boltSampleFile, args.geneticMapFile, args.bgenMinMaf, outdir+"/phen.txt", args.column, args.covarFile, args.qcovarCol, args.LDscoresFile, args.numThreads, args.modelSnps, args.resultdir)
 subprocess.run(cmd, shell=True)
 
