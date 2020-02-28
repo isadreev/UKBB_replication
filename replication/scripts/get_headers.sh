@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ../data
+cd /mnt/storage/private/mrcieu/research/mr-eve/UKBB_replication/replication/data
 
 path_to_phesant="/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod"
 head -n 1 ${path_to_phesant}/*.txt | sed '/^$/d' > temp1

@@ -1,6 +1,6 @@
 library(data.table)
 
-setwd("../data")
+setwd("/mnt/storage/private/mrcieu/research/mr-eve/UKBB_replication/replication/data")
 
 args <- commandArgs(T)
 gwas_samplefile <- args[1]

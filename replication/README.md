@@ -16,7 +16,7 @@ Rscript make_phenotype_dictionary.r
 Rscript choose_discovery_ids.r \
 /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample \
 100 \
-../data/discoveryids.txt
+/mnt/storage/private/mrcieu/research/mr-eve/UKBB_replication/replication/data/discoveryids.txt
 ```
 
 3. Create a script which creates a phenotype for Bolt LMM

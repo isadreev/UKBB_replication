@@ -1,10 +1,16 @@
 import os
+import json
+
+with open("config.json", "r") as f:
+	config = json.load(f)
+DATADIR = config["datadir"]
+PHENDIR = config["phendir"]
 
 os.makedirs('job_reports', exist_ok=True)
 
 # define the list of datasets that we want to make
 
-with open("../data/ukb-b-idlist.txt", 'r') as f:
+with open(DATADIR + "/replication/data/ukb-b-idlist.txt", 'r') as f:
 	DATA = f.readlines()
 
 col=["discovery", "replication"]
@@ -14,39 +20,39 @@ DATA = [x.strip().lower() for x in DATA]
 
 rule all:
 	input: 
-		expand("../results/{data}/{col}.statsfile.txt.gz", col=col, data=DATA)
+		expand("{DATADIR}/replication/results/{data}/{col}.statsfile.txt.gz", DATADIR = DATADIR, col=col, data=DATA)
 
 
 rule create_phen:
 	input:
-		"../data/dict.rdata"
+		"{DATADIR}/replication/data/dict.rdata"
 	output:
-		"../results/{data}/phen.txt"
+		"{DATADIR}/replication/results/{data}/phen.txt"
 	shell:
 		"""
 Rscript make_phenotype_file.r \
 {wildcards.data} \
-../data/dict.rdata \
-/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod \
-/mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/linker_app15825.csv \
-../data/discoveryids.txt \
-../results/{wildcards.data}
+{DATADIR}/replication/data/dict.rdata \
+{PHENDIR}/data/derived/phesant_mod \
+{PHENDIR}/data/linker_app15825.csv \
+{DATADIR}/replication/data/discoveryids.txt \
+{DATADIR}/replication/results/{wildcards.data}
 		"""
 
 
 rule run_gwas:
 	input:
-		"../results/{data}/phen.txt"
+		"{DATADIR}/replication/results/{data}/phen.txt"
 	output:
-		"../results/{data}/{col}.statsfile.txt.gz"
+		"{DATADIR}/replication/results/{data}/{col}.statsfile.txt.gz"
 	shell:
 		"""
 python run_replication.py \
 --ukbbid {wildcards.data} \
---dictionaryfile ../data/dict.rdata \
---phesantdir /mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/derived/phesant_mod \
---discoveryids ../data/discoveryids.txt \
---resultdir ../results \
+--dictionaryfile {DATADIR}/replication/data/dict.rdata \
+--phesantdir {PHENDIR}/data/derived/phesant_mod \
+--discoveryids {DATADIR}/replication/data/discoveryids.txt \
+--resultdir {DATADIR}/replication/results \
 --bolt_exe_dir /mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4 \
 --bfile /mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/bolt_bfile/grm6_european_filtered_ieu \
 --bgenDir /mnt/storage/home/kf19639/repo/UKBB_replication/replication/data \
@@ -58,7 +64,7 @@ python run_replication.py \
 --LDscoresFile /mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4/tables/LDSCORE.1000G_EUR.tab.gz \
 --numThreads 3 \
 --modelSnps /mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/model_snps_for_grm/grm6_snps.prune.in \
---linker /mnt/storage/private/mrcieu/data/ukbiobank/phenotypic/applications/15825/2019-05-02/data/linker_app15825.csv \
+--linker {PHENDIR}/data/linker_app15825.csv \
 --column {wildcards.col}
 		"""
 

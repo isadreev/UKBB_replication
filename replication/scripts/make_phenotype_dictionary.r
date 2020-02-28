@@ -1,6 +1,6 @@
 library(dplyr)
 
-setwd("../data")
+setwd("/mnt/storage/private/mrcieu/research/mr-eve/UKBB_replication/replication/data")
 a <- read.table("Phenotypes.txt", he=T, stringsAsFactors=FALSE, comment="*")
 b <- read.table("temp2", sep="\t", stringsAsFactors=FALSE, comment="*")
 phesant <- lapply(1:nrow(b), function(x) {
@@ -22,4 +22,4 @@ dict <- bind_rows(l)
 
 #length(unique(l$phesantid))
 #length(unique(l$ukbbid))
-save(dict, file="../data/dict.rdata")
+save(dict, file="/mnt/storage/private/mrcieu/research/mr-eve/UKBB_replication/replication/data/dict.rdata")
