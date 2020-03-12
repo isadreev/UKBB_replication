@@ -1,0 +1,120 @@
+---
+title: Simulating different split proportions for discovery and replication
+author: Gibran Hemani
+date: '`r format(Sys.Date())`'
+---
+
+```{r}
+suppressPackageStartupMessages(suppressWarnings({
+	library(dplyr)
+	library(ggplot2)
+	library(simulateGP)
+	library(knitr)
+}))
+opts_chunk$set(cache=TRUE, echo=TRUE, message=FALSE, warning=FALSE)
+```
+
+We can split the UKBB data to obtain discovery and replication effect estimates for a GWAS. We can use the replication sample as the outcome sample in an MR analysis. If sample A is used for discovery of exposure instruments, and sample B is used for replicating the exposure instruments and estimating the outcome effects, what proportion of samples should be in A or B?
+
+Expect that larger sample size for discovery will lead to more instruments and therefore greater power. However, larger sample in B will lead to more precision of SNP-outcome estimate therefore more power. On balance, an even split likely to be overall most powerful.
+
+Does this change for different genetic architectures?
+
+Simple simulations to look at this - vary proportion of samples in A (remainder are in B), and vary genetic architectures. 
+
+
+Note: These simulations operate by generating GWAS summary data directly, not by generating individuals with true sample overlap. Previous simulations suggested that having sample overlap between exposure replication estimates and SNP-outcome estimates was not a big problem, and similar to the scenario where SNP-outcome estimates were from an entirely independent sample. These simulations mimic the latter, where the SNP-outcome estimate is from an entirely independent sample.
+
+Parameters:
+
+```{r}
+param <- expand.grid(
+	nid = 450000,
+	propA = seq(0.1, 0.9, by=0.1),
+	h2 = seq(0.1, 0.9, by=0.2),
+	nsnp = c(5000, 10000),
+	bxy = 0.2,
+	minmaf = 0.1,
+	maxmaf = 0.5,
+	S = 0,
+	threshold = 5e-8,
+	sim = 1:50
+)
+dim(param)
+```
+
+Simulations:
+
+
+```{r}
+runsim <- function(p)
+{
+	paramx <- simulateGP::generate_gwas_params(runif(p$nsnp, p$minmaf, p$maxmaf), p$h2, p$S)
+	paramy <- paramx
+	paramy$beta <- paramy$beta * p$bxy
+	ndisc <- round(p$nid * p$propA)
+	nrepl <- p$nid - ndisc
+	discx <- simulateGP::generate_gwas_ss(paramx$beta, paramx$maf, ndisc)
+	replx <- simulateGP::generate_gwas_ss(paramx$beta, paramx$maf, nrepl)
+	reply <- simulateGP::generate_gwas_ss(paramy$beta, paramy$maf, nrepl)
+	sigsnp <- discx$snp[discx$pval < p$threshold]
+
+	res <- TwoSampleMR::mr_ivw(replx$bhat[sigsnp], reply$bhat[sigsnp], replx$se[sigsnp], reply$se[sigsnp])
+	p$nsig <- length(sigsnp)
+	p$ivw_b <- res$b
+	p$ivw_se <- res$se
+	p$ivw_pval <- res$pval
+	return(p)
+}
+```
+
+Run:
+
+```{r}
+l <- list()
+for(i in 1:nrow(param))
+{
+	l[[i]] <- runsim(param[i,])
+}
+l <- bind_rows(l)
+```
+
+Summarise:
+
+
+
+```{r}
+lsum <- l %>%
+	filter(!is.na(ivw_b)) %>%
+	group_by(nid, h2, nsnp, bxy, minmaf, maxmaf, S, threshold, propA) %>%
+	summarise(n=n(), nsig=mean(nsig, na.rm=T), pow=sum(ivw_pval < 0.05, na.rm=T)/n(), b=mean(ivw_b, na.rm=T), z = mean(ivw_b/ivw_se, na.rm=T))
+save(l, lsum, file="summary_sims.rdata")
+```
+
+Plot the test statistic for the MR result - higher Z value means higher power - against the proportion of samples in A:
+
+```{r}
+ggplot(lsum, aes(y=z, x=propA, group=as.factor(nsnp * h2))) +
+geom_point(aes(colour=as.factor(nsnp), shape=as.factor(h2))) +
+geom_line(aes(colour=as.factor(nsnp), linetype=as.factor(h2)))
+```
+
+Generally the power is maximised somewhere in the middle, but the point of maximisation does change with different architectures. In general, a 50/50 split seems fine.
+
+Is bias changing with different values of propA?
+
+```{r}
+ggplot(lsum, aes(y=b, x=propA, group=as.factor(nsnp * h2))) +
+geom_point(aes(colour=as.factor(nsnp), shape=as.factor(h2))) +
+geom_line(aes(colour=as.factor(nsnp), linetype=as.factor(h2)))
+```
+
+Looks like weak instrument bias increases when the replication sample is smaller.
+
+How many instruments are being discovered?
+
+```{r}
+ggplot(lsum, aes(y=nsig, x=propA, group=as.factor(nsnp * h2))) +
+geom_point(aes(colour=as.factor(nsnp), shape=as.factor(h2))) +
+geom_line(aes(colour=as.factor(nsnp), linetype=as.factor(h2)))
+```
