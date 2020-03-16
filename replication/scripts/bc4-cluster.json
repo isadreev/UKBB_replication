@@ -14,6 +14,11 @@
 	{
 		"name": "{rule}.{wildcards.data}.{wildcards.col}",
                 "output": "job_reports/{rule}.{wildcards.data}.{wildcards.col}.out"
-	}
+	},
+        "create_bgen" :
+        {
+                "name": "{rule}.{wildcards.chr}",
+                "output": "job_reports/{rule}.{wildcards.chr}.out"
+        }
 }
 

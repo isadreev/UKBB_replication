@@ -52,7 +52,7 @@ with open(outdir + "/phen.txt", "r") as f:
 # now run bolt on discovery data
 
 # modify this so that it knows where config is
-def bolt_command(phenoName,bolt_exe_dir, bfile, bgenDir, boltSampleFile, geneticMapFile, bgenMinMaf, phenoFile, phenoCol, covarFile, qcovarCol, LDscoresFile, numThreads, modelSnps, resultdir):
+def bolt_command(phenoName, bolt_exe_dir, bfile, bgenDir, boltSampleFile, geneticMapFile, bgenMinMaf, phenoFile, phenoCol, covarFile, qcovarCol, LDscoresFile, numThreads, modelSnps, resultdir):
 	#put it together
 	com = bolt_exe_dir + "/bolt" + \
 	" --bfile=" + bfile + \
@@ -75,6 +75,9 @@ def bolt_command(phenoName,bolt_exe_dir, bfile, bgenDir, boltSampleFile, genetic
 	" --covarMaxLevels=30" + \
 	" --statsFile=" + resultdir +"/"+phenoName+"/"+phenoCol+".out.txt.gz"
 	return com
+
+
+def lm_command(phenoName, bolt_exe_dir, bfile, bgenDir, boltSampleFile, geneticMapFile, bgenMinMaf, phenoFile, phenoCol, covarFile, qcovarCol, LDscoresFile, numThreads, modelSnps, resultdir):
 
 # Run this twice
 # once for discovery

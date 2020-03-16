@@ -1,69 +1,131 @@
 import os
 import json
 
+# Setup directories
 with open("config.json", "r") as f:
 	config = json.load(f)
 DATADIR = config["datadir"]
+os.makedirs(DATADIR, exist_ok=True)
+RESULTSDIR = config["resultsdir"]
+os.makedirs(RESULTSDIR, exist_ok=True)
 PHENDIR = config["phendir"]
-
+GENODIR = config["genodir"]
+PIPELINEDIR = config["pipelinedir"]
+USER = os.environ['USER']
+BOLTDIR = "/mnt/storage/home/" + USER + "/downloads/BOLT-LMM_v2.3.4"
+IGDDIR = config["igddir"]
 os.makedirs('job_reports', exist_ok=True)
 
-# define the list of datasets that we want to make
+# Define chromosomes
+CHR = ["%.2d" % i for i in range(1,23)]
 
-with open(DATADIR + "/replication/data/ukb-b-idlist.txt", 'r') as f:
-	DATA = f.readlines()
-
+# Define the list of datasets that we want to make
+idlist = [x for x in os.listdir(IGDDIR) if 'ukb-b' in x]
+with open(DATADIR + "/ukb-b-idlist.txt", 'w') as f:
+	[f.writelines(x + '\n') for x in idlist]
+DATA = idlist
+DATA = [x.strip().lower() for x in DATA][1:3]
 col=["discovery", "replication"]
-
-DATA = [x.strip().lower() for x in DATA]
 
 
 rule all:
 	input: 
-		expand("{DATADIR}/replication/results/{data}/{col}.statsfile.txt.gz", DATADIR = DATADIR, col=col, data=DATA)
+		expand("{RESULTSDIR}/{data}/{col}.statsfile.txt.gz", RESULTSDIR = RESULTSDIR, col=col, data=DATA)
 
 
+# Create a mapping of old ukb-b IDs to new
+rule create_dict:
+	output:
+		"{DATADIR}/dict.rdata",
+		"{DATADIR}/Phenotypes.txt"
+	shell:
+		"""
+cd {DATADIR}
+Rscript phen_ID_mapping.r
+head -n 1 {PHENDIR}/data/derived/phesant_mod/*.txt | sed '/^$/d' > temp1
+paste <(grep "^==" temp1 | sed 's/==> //g' | sed 's/ <==//g') <(grep -v "^==" temp1) > temp2
+head temp2
+Rscript make_phenotype_dictionary.r
+rm temp1 temp2
+		"""
+
+
+# Split the sample into discovery and replication IDs
+rule choose_discovery_ids:
+	output:
+		"{DATADIR}/discoveryids.txt"
+	shell:
+		"""
+Rscript choose_discovery_ids.r \
+{GENODIR}/data/dosage_bgen/data.chr1-22.sample \
+100 \
+{DATADIR}/discoveryids.txt
+"""
+
+
+# Create a list of SNPs to analyse - tophits from ukb-b analysis
+rule create_snplist:
+	output:
+		"{DATADIR}/snplist.txt"
+	shell:
+		"cat {IGDDIR}/ukb-b-*/clump.txt | sort -u > {output}"
+
+
+# Subset of ukb data, including only variants in snplist.txt
+rule create_bgen:
+	input:
+		expand("{DATADIR}/snplist.txt", DATADIR=DATADIR)
+	output:
+		"{DATADIR}/extract.chr{chr}.bgen"
+	shell:
+		"qctool -bgen-bits 8 -g {GENODIR}/data/dosage_bgen/data.chr{wildcards.chr}.bgen -incl-rsids {input} -og {DATADIR}/extract.chr{wildcards.chr}.bgen"
+
+
+# Create discovery and replication phenotype files
 rule create_phen:
 	input:
-		"{DATADIR}/replication/data/dict.rdata"
+		expand("{DATADIR}/dict.rdata", DATADIR=DATADIR),
+		expand("{DATADIR}/discoveryids.txt", DATADIR=DATADIR)
 	output:
-		"{DATADIR}/replication/results/{data}/phen.txt"
+		"{RESULTSDIR}/{data}/phen.txt"
 	shell:
 		"""
 Rscript make_phenotype_file.r \
 {wildcards.data} \
-{DATADIR}/replication/data/dict.rdata \
+{DATADIR}/dict.rdata \
 {PHENDIR}/data/derived/phesant_mod \
 {PHENDIR}/data/linker_app15825.csv \
-{DATADIR}/replication/data/discoveryids.txt \
-{DATADIR}/replication/results/{wildcards.data}
+{DATADIR}/discoveryids.txt \
+{RESULTSDIR}/{wildcards.data}
 		"""
 
 
+# Perform analysis
 rule run_gwas:
 	input:
-		"{DATADIR}/replication/results/{data}/phen.txt"
+		"{RESULTSDIR}/{data}/phen.txt",
+		expand("{DATADIR}/extract.chr{chr}.bgen", chr=CHR, DATADIR=DATADIR)
 	output:
-		"{DATADIR}/replication/results/{data}/{col}.statsfile.txt.gz"
+		"{RESULTSDIR}/{data}/{col}.statsfile.txt.gz"
 	shell:
 		"""
 python run_replication.py \
 --ukbbid {wildcards.data} \
---dictionaryfile {DATADIR}/replication/data/dict.rdata \
+--dictionaryfile {DATADIR}/dict.rdata \
 --phesantdir {PHENDIR}/data/derived/phesant_mod \
---discoveryids {DATADIR}/replication/data/discoveryids.txt \
---resultdir {DATADIR}/replication/results \
---bolt_exe_dir /mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4 \
---bfile /mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/bolt_bfile/grm6_european_filtered_ieu \
---bgenDir /mnt/storage/home/kf19639/repo/UKBB_replication/replication/data \
---boltSampleFile /mnt/storage/private/mrcieu/data/ukbiobank/genetic/variants/arrays/imputed/released/2018-09-18/data/dosage_bgen/data.chr1-22.sample \
---geneticMapFile /mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4/tables/genetic_map_hg19_withX.txt.gz \
+--discoveryids {DATADIR}/discoveryids.txt \
+--resultdir {RESULTSDIR} \
+--bolt_exe_dir {BOLTDIR} \
+--bfile {PIPELINEDIR}/data/bolt_bfile/grm6_european_filtered_ieu \
+--bgenDir {DATADIR} \
+--boltSampleFile {GENODIR}/data/dosage_bgen/data.chr1-22.sample \
+--geneticMapFile {BOLTDIR}/tables/genetic_map_hg19_withX.txt.gz \
 --bgenMinMaf '0.001' \
---covarFile /mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/covariates/data.covariates_ieu.bolt.txt \
+--covarFile {PIPELINEDIR}/data/covariates/data.covariates_ieu.bolt.txt \
 --qcovarCol '{{sex,chip}}' \
---LDscoresFile /mnt/storage/home/kf19639/downloads/BOLT-LMM_v2.3.4/tables/LDSCORE.1000G_EUR.tab.gz \
+--LDscoresFile {BOLTDIR}/tables/LDSCORE.1000G_EUR.tab.gz \
 --numThreads 3 \
---modelSnps /mnt/storage/private/mrcieu/research/UKBIOBANK_GWAS_Pipeline/data/model_snps_for_grm/grm6_snps.prune.in \
+--modelSnps {PIPELINEDIR}/data/model_snps_for_grm/grm6_snps.prune.in \
 --linker {PHENDIR}/data/linker_app15825.csv \
 --column {wildcards.col}
 		"""
