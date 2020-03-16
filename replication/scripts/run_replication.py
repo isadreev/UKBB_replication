@@ -18,6 +18,8 @@ parser.add_argument('--geneticMapFile')
 parser.add_argument('--bgenMinMaf')
 parser.add_argument('--covarFile')
 parser.add_argument('--qcovarCol')
+parser.add_argument('--pcFile')
+parser.add_argument('--pcCovarCol')
 parser.add_argument('--LDscoresFile')
 parser.add_argument('--numThreads')
 parser.add_argument('--modelSnps')
@@ -52,7 +54,7 @@ with open(outdir + "/phen.txt", "r") as f:
 # now run bolt on discovery data
 
 # modify this so that it knows where config is
-def bolt_command(phenoName, bolt_exe_dir, bfile, bgenDir, boltSampleFile, geneticMapFile, bgenMinMaf, phenoFile, phenoCol, covarFile, qcovarCol, LDscoresFile, numThreads, modelSnps, resultdir):
+def bolt_command(phenoName, bolt_exe_dir, bfile, bgenDir, boltSampleFile, geneticMapFile, bgenMinMaf, phenoFile, phenoCol, covarFile, qcovarCol, LDscoresFile, numThreads, modelSnps, resultdir, outname):
 	#put it together
 	com = bolt_exe_dir + "/bolt" + \
 	" --bfile=" + bfile + \
@@ -73,14 +75,43 @@ def bolt_command(phenoName, bolt_exe_dir, bfile, bgenDir, boltSampleFile, geneti
 	" --modelSnps "+modelSnps + \
 	" --statsFileBgenSnps=" + resultdir +"/"+phenoName+"/"+phenoCol+".statsfile.txt.gz" + \
 	" --covarMaxLevels=30" + \
-	" --statsFile=" + resultdir +"/"+phenoName+"/"+phenoCol+".out.txt.gz"
+	" --statsFile=" + outname
 	return com
 
 
-def lm_command(phenoName, bolt_exe_dir, bfile, bgenDir, boltSampleFile, geneticMapFile, bgenMinMaf, phenoFile, phenoCol, covarFile, qcovarCol, LDscoresFile, numThreads, modelSnps, resultdir):
+def lm_command(phenoName, bolt_exe_dir, bfile, bgenDir, boltSampleFile, geneticMapFile, bgenMinMaf, phenoFile, phenoCol, pcFile, pcCovarCol, LDscoresFile, numThreads, modelSnps, resultdir, outname):
+	#put it together
+	com = bolt_exe_dir + "/bolt" + \
+	" --bfile=" + bfile + \
+	" --bgenFile=" + bgenDir + "/" + "extract.chr0{1:9}.bgen" + \
+	" --bgenFile=" + bgenDir + "/" + "extract.chr{10:22}.bgen" + \
+	" --sampleFile=" + boltSampleFile + \
+	" --bgenMinMAF=" + bgenMinMaf + \
+	" --phenoFile=" + phenoFile + \
+	" --phenoCol=" + phenoCol + \
+	" --covarFile=" + pcFile + \
+	" --qCovarCol=" + pcCovarCol + \
+	" --numThreads="+str(numThreads) + \
+	" --verboseStats" + \
+	" --statsFileBgenSnps=" + resultdir +"/"+phenoName+"/"+phenoCol+".statsfile.txt.gz" + \
+	" --covarMaxLevels=30" + \
+	" --statsFile=" + outname
+	return com
 
 # Run this twice
 # once for discovery
-cmd = bolt_command(args.ukbbid,args.bolt_exe_dir, args.bfile, args.bgenDir, args.boltSampleFile, args.geneticMapFile, args.bgenMinMaf, outdir+"/phen.txt", args.column, args.covarFile, args.qcovarCol, args.LDscoresFile, args.numThreads, args.modelSnps, args.resultdir)
+
+outname = args.resultdir + "/" + args.ukbbid + "/" + args.column + ".out.txt.gz"
+
+# cmd = bolt_command(args.ukbbid,args.bolt_exe_dir, args.bfile, args.bgenDir, args.boltSampleFile, args.geneticMapFile, args.bgenMinMaf, outdir+"/phen.txt", args.column, args.covarFile, args.qcovarCol, args.LDscoresFile, args.numThreads, args.modelSnps, args.resultdir, outname)
+# subprocess.run(cmd, shell=True)
+
+# if os.stat(file_path).st_size == 0:
+cmd = lm_command(args.ukbbid,args.bolt_exe_dir, args.bfile, args.bgenDir, args.boltSampleFile, args.geneticMapFile, args.bgenMinMaf, outdir+"/phen.txt", args.column, args.pcFile, args.pcCovarCol, args.LDscoresFile, args.numThreads, args.modelSnps, args.resultdir, outname)
 subprocess.run(cmd, shell=True)
 
+# " --geneticMapFile=" + geneticMapFile + \
+# " --lmm" + \
+# " --LDscoresFile=" + LDscoresFile + \
+# " --LDscoresMatchBp" + \
+# " --modelSnps "+modelSnps + \

@@ -50,6 +50,19 @@ rm temp1 temp2
 		"""
 
 
+# Create PC file
+rule create_pcs:
+	output:
+		"{DATADIR}/pcs.txt"
+	shell:
+		"""
+Rscript create_pc_file.r \
+{GENODIR}/data/derived/principal_components/data.pca1-40.plink.txt \
+{GENODIR}/data/derived/related/relateds_exclusions/data.minimal_relateds.plink.txt \
+{DATADIR}/pcs.txt
+		"""
+
+
 # Split the sample into discovery and replication IDs
 rule choose_discovery_ids:
 	output:
@@ -60,7 +73,7 @@ Rscript choose_discovery_ids.r \
 {GENODIR}/data/dosage_bgen/data.chr1-22.sample \
 100 \
 {DATADIR}/discoveryids.txt
-"""
+		"""
 
 
 # Create a list of SNPs to analyse - tophits from ukb-b analysis
@@ -123,6 +136,8 @@ python run_replication.py \
 --bgenMinMaf '0.001' \
 --covarFile {PIPELINEDIR}/data/covariates/data.covariates_ieu.bolt.txt \
 --qcovarCol '{{sex,chip}}' \
+--pcFile {DATADIR}/pcs.txt \
+--pcCovarCol 'V{{1:42}}' \
 --LDscoresFile {BOLTDIR}/tables/LDSCORE.1000G_EUR.tab.gz \
 --numThreads 3 \
 --modelSnps {PIPELINEDIR}/data/model_snps_for_grm/grm6_snps.prune.in \
