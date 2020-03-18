@@ -49,6 +49,11 @@ Rscript make_phenotype_dictionary.r
 rm temp1 temp2
 		"""
 
+rule create_second_linker:
+	output:
+		"{DATADIR}/second_linker.rdata"
+	shell:
+		"Rscript second_linker.r {PHENDIR} {output}"
 
 # Create PC file
 rule create_pcs:
@@ -98,7 +103,8 @@ rule create_bgen:
 rule create_phen:
 	input:
 		expand("{DATADIR}/dict.rdata", DATADIR=DATADIR),
-		expand("{DATADIR}/discoveryids.txt", DATADIR=DATADIR)
+		expand("{DATADIR}/discoveryids.txt", DATADIR=DATADIR),
+		expand("{DATADIR}/second_linker.rdata", DATADIR=DATADIR)
 	output:
 		"{RESULTSDIR}/{data}/phen.txt"
 	shell:
@@ -108,6 +114,7 @@ Rscript make_phenotype_file.r \
 {DATADIR}/dict.rdata \
 {PHENDIR}/data/derived/phesant_mod \
 {PHENDIR}/data/linker_app15825.csv \
+{DATADIR}/second_linker.rdata \
 {DATADIR}/discoveryids.txt \
 {RESULTSDIR}/{wildcards.data}
 		"""

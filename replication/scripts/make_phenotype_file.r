@@ -5,8 +5,9 @@ ukbbid <- args[1]
 dictionaryfile <- args[2]
 phesantdir <- args[3]
 linkerfile <- args[4]
-discoveryids <- args[5]
-output <- args[6]
+secondlinkerfile <- args[5]
+discoveryids <- args[6]
+output <- args[7]
 
 args
 
@@ -25,11 +26,14 @@ dir.create(output, recursive=TRUE, showWarnings=FALSE)
 
 row <- which(dict$ukbbid == ukbbid)
 a <- fread(dict$phesantfile[row], header=TRUE)
-b <- subset(a, select=c("FID", "IID", dict$phesantid[row]))
-names(b)[3] <- "discovery"
+b <- subset(a, select=c("FID", dict$phesantid[row]))
+names(b)[2] <- "discovery"
 linker <- fread(linkerfile, header=TRUE)
+load(secondlinkerfile)
+linker <- merge(linker, second_linker, by.x="app", by.y="phesant")
 
-b <- merge(b, linker, by.x="FID", by.y="app") %>%
+
+b1 <- merge(b, linker, by.x="FID", by.y="phesant_mod") %>%
 	{tibble(FID=.$ieu, IID=.$ieu, discovery=.$discovery)}
 
 # read in discovery ids
@@ -39,6 +43,7 @@ dids <- scan(discoveryids, what=character())
 b$replication <- b$discovery
 b$discovery[! b$IID %in% dids] <- NA
 b$replication[b$IID %in% dids] <- NA
+dim(b)
 
 outfile <- file.path(output, "phen.txt")
 write.table(b, file=outfile, row=F, col=T, qu=F)

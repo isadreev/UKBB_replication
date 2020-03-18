@@ -26,7 +26,7 @@ Create a `config.json` file with relevant paths:
 * `igddir` = path to GWAS VCF files for ukb-b batch
 * `pipelinedir` = path to original ukb-b gwas pipeline dir
 * `datadir` = where to store generated data
-* `resultsdi` = where to store generated results
+* `resultsdir` = where to store generated results
 
 https://github.com/MRCIEU/BiobankGWAS/blob/master/scripts/config.py
 - this has all the files used for the original analysis
