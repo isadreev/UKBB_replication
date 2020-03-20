@@ -3,7 +3,7 @@ import json
 
 # Setup directories
 with open("config.json", "r") as f:
-	config = json.load(f)
+  config = json.load(f)
 DATADIR = config["datadir"]
 os.makedirs(DATADIR, exist_ok=True)
 RESULTSDIR = config["resultsdir"]
@@ -22,24 +22,24 @@ CHR = ["%.2d" % i for i in range(1,23)]
 # Define the list of datasets that we want to make
 idlist = [x for x in os.listdir(IGDDIR) if 'ukb-b' in x]
 with open(DATADIR + "/ukb-b-idlist.txt", 'w') as f:
-	[f.writelines(x + '\n') for x in idlist]
+  [f.writelines(x + '\n') for x in idlist]
 DATA = idlist
 DATA = [x.strip().lower() for x in DATA][1:3]
 col=["discovery", "replication"]
 
 
 rule all:
-	input: 
-		expand("{RESULTSDIR}/{data}/{col}.statsfile.txt.gz", RESULTSDIR = RESULTSDIR, col=col, data=DATA)
+  input: 
+    expand("{RESULTSDIR}/{data}/{col}.statsfile.txt.gz", RESULTSDIR = RESULTSDIR, col=col, data=DATA)
 
 
 # Create a mapping of old ukb-b IDs to new
 rule create_dict:
-	output:
-		"{DATADIR}/dict.rdata",
-		"{DATADIR}/Phenotypes.txt"
-	shell:
-		"""
+  output:
+    "{DATADIR}/dict.rdata",
+    "{DATADIR}/Phenotypes.txt"
+  shell:
+    """
 cd {DATADIR}
 Rscript phen_ID_mapping.r
 head -n 1 {PHENDIR}/data/derived/phesant_mod/*.txt | sed '/^$/d' > temp1
@@ -47,68 +47,68 @@ paste <(grep "^==" temp1 | sed 's/==> //g' | sed 's/ <==//g') <(grep -v "^==" te
 head temp2
 Rscript make_phenotype_dictionary.r
 rm temp1 temp2
-		"""
+    """
 
 rule create_second_linker:
-	output:
-		"{DATADIR}/second_linker.rdata"
-	shell:
-		"Rscript second_linker.r {PHENDIR} {output}"
+  output:
+    "{DATADIR}/second_linker.rdata"
+  shell:
+    "Rscript second_linker.r {PHENDIR} {output}"
 
 # Create PC file
 rule create_pcs:
-	output:
-		"{DATADIR}/pcs.txt"
-	shell:
-		"""
+  output:
+    "{DATADIR}/pcs.txt"
+  shell:
+    """
 Rscript create_pc_file.r \
 {GENODIR}/data/derived/principal_components/data.pca1-40.plink.txt \
 {GENODIR}/data/derived/related/relateds_exclusions/data.minimal_relateds.plink.txt \
 {DATADIR}/pcs.txt
-		"""
+    """
 
 
 # Split the sample into discovery and replication IDs
 rule choose_discovery_ids:
-	output:
-		"{DATADIR}/discoveryids.txt"
-	shell:
-		"""
+  output:
+    "{DATADIR}/discoveryids.txt"
+  shell:
+    """
 Rscript choose_discovery_ids.r \
 {GENODIR}/data/dosage_bgen/data.chr1-22.sample \
 100 \
 {DATADIR}/discoveryids.txt
-		"""
+    """
 
 
 # Create a list of SNPs to analyse - tophits from ukb-b analysis
 rule create_snplist:
-	output:
-		"{DATADIR}/snplist.txt"
-	shell:
-		"cat {IGDDIR}/ukb-b-*/clump.txt | sort -u > {output}"
+  output:
+    "{DATADIR}/snplist.txt"
+  shell:
+    "cat {IGDDIR}/ukb-b-*/clump.txt | sort -u > {output}"
 
 
 # Subset of ukb data, including only variants in snplist.txt
 rule create_bgen:
-	input:
-		expand("{DATADIR}/snplist.txt", DATADIR=DATADIR)
-	output:
-		"{DATADIR}/extract.chr{chr}.bgen"
-	shell:
-		"qctool -bgen-bits 8 -g {GENODIR}/data/dosage_bgen/data.chr{wildcards.chr}.bgen -incl-rsids {input} -og {DATADIR}/extract.chr{wildcards.chr}.bgen"
+  input:
+    expand("{DATADIR}/snplist.txt", DATADIR=DATADIR)
+  output:
+    "{DATADIR}/extract.chr{chr}.bgen"
+  shell:
+    "qctool -bgen-bits 8 -g {GENODIR}/data/dosage_bgen/data.chr{wildcards.chr}.bgen -incl-rsids {input} -og {DATADIR}/extract.chr{wildcards.chr}.bgen"
 
 
 # Create discovery and replication phenotype files
 rule create_phen:
-	input:
-		expand("{DATADIR}/dict.rdata", DATADIR=DATADIR),
-		expand("{DATADIR}/discoveryids.txt", DATADIR=DATADIR),
-		expand("{DATADIR}/second_linker.rdata", DATADIR=DATADIR)
-	output:
-		"{RESULTSDIR}/{data}/phen.txt"
-	shell:
-		"""
+  input:
+    expand("{DATADIR}/dict.rdata", DATADIR=DATADIR),
+    expand("{DATADIR}/discoveryids.txt", DATADIR=DATADIR),
+    expand("{DATADIR}/second_linker.rdata", DATADIR=DATADIR)
+  output:
+    "{RESULTSDIR}/{data}/phen.txt"
+  shell:
+    """
 Rscript make_phenotype_file.r \
 {wildcards.data} \
 {DATADIR}/dict.rdata \
@@ -117,18 +117,18 @@ Rscript make_phenotype_file.r \
 {DATADIR}/second_linker.rdata \
 {DATADIR}/discoveryids.txt \
 {RESULTSDIR}/{wildcards.data}
-		"""
+    """
 
 
 # Perform analysis
 rule run_gwas:
-	input:
-		"{RESULTSDIR}/{data}/phen.txt",
-		expand("{DATADIR}/extract.chr{chr}.bgen", chr=CHR, DATADIR=DATADIR)
-	output:
-		"{RESULTSDIR}/{data}/{col}.statsfile.txt.gz"
-	shell:
-		"""
+  input:
+    "{RESULTSDIR}/{data}/phen.txt",
+    expand("{DATADIR}/extract.chr{chr}.bgen", chr=CHR, DATADIR=DATADIR)
+  output:
+    "{RESULTSDIR}/{data}/{col}.statsfile.txt.gz"
+  shell:
+    """
 python run_replication.py \
 --ukbbid {wildcards.data} \
 --dictionaryfile {DATADIR}/dict.rdata \
@@ -150,18 +150,13 @@ python run_replication.py \
 --modelSnps {PIPELINEDIR}/data/model_snps_for_grm/grm6_snps.prune.in \
 --linker {PHENDIR}/data/linker_app15825.csv \
 --column {wildcards.col}
-		"""
+    """
 
 
 
 # Count tophits
 rule top_hits:
-	output:
-		"{DATADIR}/pcs.txt"
-	shell:
-		"""
-Rscript create_pc_file.r \
-{GENODIR}/data/derived/principal_components/data.pca1-40.plink.txt \
-{GENODIR}/data/derived/related/relateds_exclusions/data.minimal_relateds.plink.txt \
-{DATADIR}/pcs.txt
-		"""
+  output:
+    "{DATADIR}/count_tophits.txt"
+  shell:
+    "Rscript count_tophits.r {IGDDIR} {DATADIR} {RESULTSDIR}"
