@@ -152,3 +152,16 @@ python run_replication.py \
 --column {wildcards.col}
 		"""
 
+
+
+# Count tophits
+rule top_hits:
+	output:
+		"{DATADIR}/pcs.txt"
+	shell:
+		"""
+Rscript create_pc_file.r \
+{GENODIR}/data/derived/principal_components/data.pca1-40.plink.txt \
+{GENODIR}/data/derived/related/relateds_exclusions/data.minimal_relateds.plink.txt \
+{DATADIR}/pcs.txt
+		"""
