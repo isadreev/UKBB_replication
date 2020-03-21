@@ -40,12 +40,13 @@ rule create_dict:
     "{DATADIR}/Phenotypes.txt"
   shell:
     """
+cwd=$(pwd)
 cd {DATADIR}
-Rscript phen_ID_mapping.r
+Rscript $cwd/phen_ID_mapping.r
 head -n 1 {PHENDIR}/data/derived/phesant_mod/*.txt | sed '/^$/d' > temp1
 paste <(grep "^==" temp1 | sed 's/==> //g' | sed 's/ <==//g') <(grep -v "^==" temp1) > temp2
 head temp2
-Rscript make_phenotype_dictionary.r
+Rscript $cwd/make_phenotype_dictionary.r
 rm temp1 temp2
     """
 
