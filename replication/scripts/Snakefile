@@ -75,7 +75,9 @@ rule choose_discovery_ids:
     "{DATADIR}/discoveryids.txt"
   shell:
     """
-Rscript choose_discovery_ids.r \
+cwd=$(pwd)
+cd {DATADIR}
+Rscript $cwd/choose_discovery_ids.r \
 {GENODIR}/data/dosage_bgen/data.chr1-22.sample \
 100 \
 {DATADIR}/discoveryids.txt
