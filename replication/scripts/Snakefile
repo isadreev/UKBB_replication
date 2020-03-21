@@ -24,15 +24,11 @@ col=["discovery", "replication"]
 
 # Define the list of datasets that we want to make
 idlist = [x for x in os.listdir(IGDDIR) if 'ukb-b' in x]
+DATA = [x.strip().lower() for x in idlist]
 with open(DATADIR + "/ukb-b-idlist.txt", 'w') as f:
-  [f.writelines(x + '\n') for x in idlist]
-DATA = idlist
-DATA = [x.strip().lower() for x in DATA]
-
-# only do [1:3] for now
-DATA = DATA[1:3]
-
-
+  [f.writelines(x + '\n') for x in DATA]
+DATA = ['ukb-b-19953', 'ukb-b-1668', 'ukb-b-3983', 'ukb-b-7436', 'ukb-b-16606']
+col = ["discovery", "replication"]
 
 
 rule all:
@@ -83,7 +79,9 @@ rule choose_discovery_ids:
     "{DATADIR}/discoveryids.txt"
   shell:
     """
-Rscript choose_discovery_ids.r \
+cwd=$(pwd)
+cd {DATADIR}
+Rscript $cwd/choose_discovery_ids.r \
 {GENODIR}/data/dosage_bgen/data.chr1-22.sample \
 100 \
 {DATADIR}/discoveryids.txt
