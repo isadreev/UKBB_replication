@@ -1,24 +1,29 @@
 {
         "__default__" :
         {
-                "name": "{rule}.{wildcards.data}",
+                "name": "{rule}",
                 "partition": "mrcieu",
                 "nodes": "1",
                 "ncpu": "1",
                 "ntask": "1",
                 "time": "10:00:00",
                 "mem": "30G",
-                "output": "job_reports/{rule}.{wildcards.data}.out"
+                "output": "job_reports/{rule}.out"
+        },
+        "create_bgen" :
+        {
+                "name": "{rule}.{wildcards.chr}",
+                "output": "job_reports/{rule}.{wildcards.chr}.out"
         },
 	"run_gwas" :
 	{
 		"name": "{rule}.{wildcards.data}.{wildcards.col}",
                 "output": "job_reports/{rule}.{wildcards.data}.{wildcards.col}.out"
 	},
-        "create_bgen" :
+        "create_phen" :
         {
-                "name": "{rule}.{wildcards.chr}",
-                "output": "job_reports/{rule}.{wildcards.chr}.out"
+                "name": "{rule}.{wildcards.data}",
+                "output": "job_reports/{rule}.{wildcards.data}.out"
         }
 }
 
