@@ -101,11 +101,11 @@ def lm_command(phenoName, bolt_exe_dir, bfile, bgenDir, boltSampleFile, geneticM
 
 outname = args.resultdir + "/" + args.ukbbid + "/" + args.column + ".out.txt.gz"
 
-# cmd = bolt_command(args.ukbbid,args.bolt_exe_dir, args.bfile, args.bgenDir, args.boltSampleFile, args.geneticMapFile, args.bgenMinMaf, outdir+"/phen.txt", args.column, args.covarFile, args.qcovarCol, args.LDscoresFile, args.numThreads, args.modelSnps, args.resultdir, outname)
-# subprocess.run(cmd, shell=True)
+cmd = bolt_command(args.ukbbid,args.bolt_exe_dir, args.bfile, args.bgenDir, args.boltSampleFile, args.geneticMapFile, args.bgenMinMaf, outdir+"/phen.txt", args.column, args.covarFile, args.qcovarCol, args.LDscoresFile, args.numThreads, args.modelSnps, args.resultdir, outname)
+subprocess.run(cmd, shell=True)
 
 
 # If lmm command fails then perform simple lm instead:
-# if os.stat(file_path).st_size == 0:
-cmd = lm_command(args.ukbbid,args.bolt_exe_dir, args.bfile, args.bgenDir, args.boltSampleFile, args.geneticMapFile, args.bgenMinMaf, outdir+"/phen.txt", args.column, args.pcFile, args.pcCovarCol, args.LDscoresFile, args.numThreads, args.modelSnps, args.resultdir, outname)
-subprocess.run(cmd, shell=True)
+if os.stat(file_path).st_size == 0:
+	cmd = lm_command(args.ukbbid,args.bolt_exe_dir, args.bfile, args.bgenDir, args.boltSampleFile, args.geneticMapFile, args.bgenMinMaf, outdir+"/phen.txt", args.column, args.pcFile, args.pcCovarCol, args.LDscoresFile, args.numThreads, args.modelSnps, args.resultdir, outname)
+	subprocess.run(cmd, shell=True)
