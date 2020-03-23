@@ -33,7 +33,7 @@ load(secondlinkerfile)
 linker <- merge(linker, second_linker, by.x="app", by.y="phesant")
 
 
-b1 <- merge(b, linker, by.x="FID", by.y="phesant_mod") %>%
+b <- merge(b, linker, by.x="FID", by.y="phesant_mod") %>%
 	{tibble(FID=.$ieu, IID=.$ieu, discovery=.$discovery)}
 
 # read in discovery ids
