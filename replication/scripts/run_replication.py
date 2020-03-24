@@ -106,6 +106,6 @@ subprocess.run(cmd, shell=True)
 
 
 # If lmm command fails then perform simple lm instead:
-if os.stat(file_path).st_size == 0:
+if os.stat(outname).st_size == 0:
 	cmd = lm_command(args.ukbbid,args.bolt_exe_dir, args.bfile, args.bgenDir, args.boltSampleFile, args.geneticMapFile, args.bgenMinMaf, outdir+"/phen.txt", args.column, args.pcFile, args.pcCovarCol, args.LDscoresFile, args.numThreads, args.modelSnps, args.resultdir, outname)
 	subprocess.run(cmd, shell=True)
