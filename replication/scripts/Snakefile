@@ -27,7 +27,6 @@ idlist = [x for x in os.listdir(IGDDIR) if 'ukb-b' in x]
 DATA = [x.strip().lower() for x in idlist]
 with open(DATADIR + "/ukb-b-idlist.txt", 'w') as f:
   [f.writelines(x + '\n') for x in DATA]
-DATA = ['ukb-b-19953', 'ukb-b-1668', 'ukb-b-3983', 'ukb-b-7436', 'ukb-b-16606']
 col = ["discovery", "replication"]
 
 

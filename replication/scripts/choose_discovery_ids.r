@@ -1,7 +1,5 @@
 library(data.table)
 
-setwd("/mnt/storage/private/mrcieu/research/mr-eve/UKBB_replication/replication/data")
-
 args <- commandArgs(T)
 gwas_samplefile <- args[1]
 randomseed <- as.numeric(args[2])
