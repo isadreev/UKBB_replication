@@ -1,0 +1,6 @@
+"id.exposure" "id.outcome" "outcome" "exposure" "method" "nsnp" "b" "se" "pval"
+"ukb-b-19953" "ukb-b-1668" "Diagnoses - main ICD10: I25.1 Atherosclerotic heart disease || id:ukb-b-1668" "Body mass index (BMI) || id:ukb-b-19953" "MR Egger" 433 0.00528392865276703 0.00350252059197555 0.132131799547768
+"ukb-b-19953" "ukb-b-1668" "Diagnoses - main ICD10: I25.1 Atherosclerotic heart disease || id:ukb-b-1668" "Body mass index (BMI) || id:ukb-b-19953" "Weighted median" 433 0.0116242471072226 0.00189568686244404 8.68112538040783e-10
+"ukb-b-19953" "ukb-b-1668" "Diagnoses - main ICD10: I25.1 Atherosclerotic heart disease || id:ukb-b-1668" "Body mass index (BMI) || id:ukb-b-19953" "Inverse variance weighted" 433 0.0127885294923485 0.00127391778077545 1.02981053663759e-23
+"ukb-b-19953" "ukb-b-1668" "Diagnoses - main ICD10: I25.1 Atherosclerotic heart disease || id:ukb-b-1668" "Body mass index (BMI) || id:ukb-b-19953" "Simple mode" 433 0.018333074567699 0.00553555205040817 0.00100458242587374
+"ukb-b-19953" "ukb-b-1668" "Diagnoses - main ICD10: I25.1 Atherosclerotic heart disease || id:ukb-b-1668" "Body mass index (BMI) || id:ukb-b-19953" "Weighted mode" 433 0.0106767283950304 0.00326143935121368 0.00114712046550409
