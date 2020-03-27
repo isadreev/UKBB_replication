@@ -3,16 +3,22 @@
 
 library(TwoSampleMR)
 
+args <- commandArgs(T)
+
+dir <- args[1]
+exp <- args[2]
+out <- args[3]
+
 # List available GWASs
 ao <- available_outcomes()
 
 # ==================== Full MR ==============================
 
 # Get instruments for BMI
-exposure_dat <- extract_instruments("ukb-b-19953")
+exposure_dat <- extract_instruments(exp)
 
 # Get effects of instruments on outcome (CHD)
-outcome_dat <- extract_outcome_data(snps=exposure_dat$SNP, outcomes="ukb-b-1668")
+outcome_dat <- extract_outcome_data(snps=exposure_dat$SNP, outcomes=out)
 
 nrow(data.frame(outcome_dat))
 
@@ -30,23 +36,23 @@ write.table(res, file = "MR_full.txt", append = FALSE, quote = TRUE, sep = " ",
 
 # ==================== Replication ===========================
 
-# Read the results og GWAS
-disc_gwas = read.table(gzfile("discovery.out.txt.gz"),sep="\t",header=TRUE)
-repl_gwas = read.table(gzfile("replication.out.txt.gz"),sep="\t",header=TRUE)
+# Read the results of GWAS
+#disc_gwas = read_exposure_data("discovery.out.txt.gz")
 
+disc_gwas = read.table(gzfile(paste(dir,exp,"discovery.out.txt.gz",sep="")),sep="\t",header=TRUE)
+repl_gwas = read.table(gzfile(paste(dir,exp,"replication.out.txt.gz",sep="")),sep="\t",header=TRUE)
+
+# Obtain significant SNPs
 index <- disc_gwas$P_BOLT_LMM < 5e-8
 
+repl_gwas_s <- repl_gwas[index,]
 
-repl_gwas[index,]
+out_gwas <- read.table(gzfile(paste(dir,out,"replication.out.txt.gz",sep="")),sep="\t",header=TRUE)
 
-
-
-
-
-res <- mr(dat)
+out_gwas_s <- out_gwas[index,]
 
 # Harmonise the exposure and outcome data
-dat <- harmonise_data(exposure_dat, outcome_dat)
+dat <- harmonise_data(repl_gwas_s, out_gwas_s)
 
 # Perform MR
 res <- mr(dat)
