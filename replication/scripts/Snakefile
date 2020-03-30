@@ -32,7 +32,7 @@ col = ["discovery", "replication"]
 
 rule all:
   input: 
-    expand("{RESULTSDIR}/{data}/{col}.statsfile.txt.gz", RESULTSDIR = RESULTSDIR, col=col, data=DATA)
+    expand("{RESULTSDIR}/{data}/{col}.stats.txt.gz", RESULTSDIR = RESULTSDIR, col=col, data=DATA)
 
 
 # Create a mapping of old ukb-b IDs to new
@@ -132,7 +132,7 @@ rule run_gwas:
     "{RESULTSDIR}/{data}/phen.txt",
     expand("{DATADIR}/extract.chr{chr}.bgen", chr=CHR, DATADIR=DATADIR)
   output:
-    "{RESULTSDIR}/{data}/{col}.statsfile.txt.gz"
+    "{RESULTSDIR}/{data}/{col}.stats.txt.gz"
   shell:
     """
 python run_replication.py \
