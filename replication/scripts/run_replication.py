@@ -99,7 +99,7 @@ def lm_command(phenoName, bolt_exe_dir, bfile, bgenDir, boltSampleFile, geneticM
 	return com
 
 
-outname = args.resultdir + "/" + args.ukbbid + "/" + args.column + ".out.txt.gz"
+outname = args.resultdir + "/" + args.ukbbid + "/" + args.column + ".stats.txt.gz"
 
 cmd = bolt_command(args.ukbbid,args.bolt_exe_dir, args.bfile, args.bgenDir, args.boltSampleFile, args.geneticMapFile, args.bgenMinMaf, outdir+"/phen.txt", args.column, args.covarFile, args.qcovarCol, args.LDscoresFile, args.numThreads, args.modelSnps, args.resultdir, outname)
 subprocess.run(cmd, shell=True)
