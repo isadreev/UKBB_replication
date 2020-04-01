@@ -76,7 +76,7 @@ repl_gwas_f <- subset(repl_gwas,SNP %in% disc_gwas_f$SNP)
 out_gwas_f <- subset(out_gwas,SNP %in% disc_gwas_f$SNP)
 
 # Harmonise the exposure and outcome data
-dat_r <- harmonise_data(repl_gwas_f, out_gwas_f)
+dat_r <- harmonise_data(repl_gwas_f, out_gwas_f, action=1)
 
 # Perform MR on the replication data
 res_r <- mr(dat_r)
