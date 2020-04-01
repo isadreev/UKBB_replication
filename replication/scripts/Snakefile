@@ -25,6 +25,7 @@ col=["discovery", "replication"]
 # Define the list of datasets that we want to make
 idlist = [x for x in os.listdir(IGDDIR) if 'ukb-b' in x]
 DATA = [x.strip().lower() for x in idlist]
+DATA = ['ukb-b-19953', 'ukb-b-1668']
 with open(DATADIR + "/ukb-b-idlist.txt", 'w') as f:
   [f.writelines(x + '\n') for x in DATA]
 col = ["discovery", "replication"]

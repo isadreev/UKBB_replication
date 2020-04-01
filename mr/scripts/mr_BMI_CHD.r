@@ -2,15 +2,13 @@
 #devtools::install_github("MRCIEU/TwoSampleMR")
 
 library(TwoSampleMR)
+library(data.table)
 
 args <- commandArgs(T)
 
 dir <- args[1]
 exp <- args[2]
 out <- args[3]
-
-# List available GWASs
-ao <- available_outcomes()
 
 # ==================== Full MR ==============================
 
@@ -25,41 +23,67 @@ nrow(data.frame(outcome_dat))
 # Harmonise the exposure and outcome data
 dat <- harmonise_data(exposure_dat, outcome_dat)
 
-# Perform MR
+# Perform full MR
 res <- mr(dat)
-
-write.table(res, file = "MR_full.txt", append = FALSE, quote = TRUE, sep = " ",
-            eol = "\n", na = "NA", dec = ".", row.names = FALSE,
-            col.names = TRUE, qmethod = c("escape", "double"),
-            fileEncoding = "")
-
 
 # ==================== Replication ===========================
 
 # Read the results of GWAS
-#disc_gwas = read_exposure_data("discovery.out.txt.gz")
 
-disc_gwas = read.table(gzfile(paste(dir,exp,"discovery.out.txt.gz",sep="")),sep="\t",header=TRUE)
-repl_gwas = read.table(gzfile(paste(dir,exp,"replication.out.txt.gz",sep="")),sep="\t",header=TRUE)
+disc_gwas <- read_exposure_data(
+    filename = paste(dir,exp,"/discovery.statsfile.txt.gz",sep=""),
+    sep = "\t",
+    snp_col = "SNP",
+    beta_col = "BETA",
+    se_col = "SE",
+    effect_allele_col = "ALLELE1",
+    other_allele_col = "ALLELE0",
+    eaf_col = "A1FREQ",
+    pval_col = "P_BOLT_LMM_INF"
+)
 
-# Obtain significant SNPs
-index <- disc_gwas$P_BOLT_LMM < 5e-8
 
-repl_gwas_s <- repl_gwas[index,]
+repl_gwas <- read_exposure_data(
+    filename = paste(dir,exp,"/replication.statsfile.txt.gz",sep=""),
+    sep = "\t",
+    snp_col = "SNP",
+    beta_col = "BETA",
+    se_col = "SE",
+    effect_allele_col = "ALLELE1",
+    other_allele_col = "ALLELE0",
+    eaf_col = "A1FREQ",
+    pval_col = "P_BOLT_LMM_INF"
+)
 
-out_gwas <- read.table(gzfile(paste(dir,out,"replication.out.txt.gz",sep="")),sep="\t",header=TRUE)
+out_gwas <- read_outcome_data(
+    filename = paste(dir,out,"/replication.statsfile.txt.gz",sep=""),
+    sep = "\t",
+    snp_col = "SNP",
+    beta_col = "BETA",
+    se_col = "SE",
+    effect_allele_col = "ALLELE1",
+    other_allele_col = "ALLELE0",
+    eaf_col = "A1FREQ",
+    pval_col = "P_BOLT_LMM_INF"
+)
 
-out_gwas_s <- out_gwas[index,]
+# FIltering SNPs for their presence in the phenotype and for p-val
+
+disc_gwas_f <- subset(disc_gwas,SNP %in% exposure_dat$SNP & pval.exposure < 5e-8)
+
+repl_gwas_f <- subset(repl_gwas,SNP %in% disc_gwas_f$SNP)
+
+out_gwas_f <- subset(out_gwas,SNP %in% disc_gwas_f$SNP)
 
 # Harmonise the exposure and outcome data
-dat <- harmonise_data(repl_gwas_s, out_gwas_s)
+dat_r <- harmonise_data(repl_gwas_f, out_gwas_f)
 
-# Perform MR
-res <- mr(dat)
+# Perform MR on the replication data
+res_r <- mr(dat_r)
 
-write.table(res, file = "MR_repl.txt", append = FALSE, quote = TRUE, sep = " ",
-            eol = "\n", na = "NA", dec = ".", row.names = FALSE,
-            col.names = TRUE, qmethod = c("escape", "double"),
-            fileEncoding = "")
+
+
+# Save all results
+save(res, res_r, file = "MR_BMI_CHD.RData")
 
 
