@@ -67,7 +67,7 @@ out_gwas <- read_outcome_data(
     pval_col = "P_BOLT_LMM_INF"
 )
 
-# FIltering SNPs for their presence in the phenotype and for p-val
+# Filtering SNPs for their presence in the phenotype and for p-val
 
 disc_gwas_f <- subset(disc_gwas,SNP %in% exposure_dat$SNP & pval.exposure < 5e-8)
 
