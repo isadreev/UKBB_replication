@@ -6,16 +6,12 @@ library(data.table)
 
 args <- commandArgs(T)
 
-dir <- args[1]
-exp <- args[2]
-
-
-dir_res <- paste(dir,"results/",sep="")
-datadir <- paste(dir,"data/",sep="")
+datadir <- args[1]
+resultsdir <- args[2]
+exp <- args[3]
 
 # Read all phenotype names ands define each phenotype id
-phen_all <- read.table(paste(datadir,"ukb-b-idlist.txt",sep=""))
-phen_all <- as.data.frame(phen_all[c(5,12,18,27,31),])
+phen_all <- read.table(paste(datadir,"ukb-b-idlist.txt",sep="/"))
 
 mybiglist <- list()
 
@@ -42,7 +38,7 @@ for (out in phen_all[,1])
   # Read the results of GWAS
   
   disc_gwas <- read_exposure_data(
-    filename = paste(dir_res,exp,"/discovery.statsfile.txt.gz",sep=""),
+    filename = paste(resultsdir,exp,"discovery.statsfile.txt.gz",sep="/"),
     sep = "\t",
     snp_col = "SNP",
     beta_col = "BETA",
@@ -55,7 +51,7 @@ for (out in phen_all[,1])
   
   
   repl_gwas <- read_exposure_data(
-    filename = paste(dir_res,exp,"/replication.statsfile.txt.gz",sep=""),
+    filename = paste(resultsdir,exp,"replication.statsfile.txt.gz",sep="/"),
     sep = "\t",
     snp_col = "SNP",
     beta_col = "BETA",
@@ -67,7 +63,7 @@ for (out in phen_all[,1])
   )
   
   out_gwas <- read_outcome_data(
-    filename = paste(dir_res,out,"/replication.statsfile.txt.gz",sep=""),
+    filename = paste(resultsdir,out,"replication.statsfile.txt.gz",sep="/"),
     sep = "\t",
     snp_col = "SNP",
     beta_col = "BETA",
@@ -98,5 +94,5 @@ for (out in phen_all[,1])
 }
 
 # Save all results
-save(mybiglist, file = paste(dir_res,exp,"MR_vs_All.RData"))
+save(mybiglist, file = paste(resultsdir,exp,"MR_vs_All.RData",sep="/"))
 

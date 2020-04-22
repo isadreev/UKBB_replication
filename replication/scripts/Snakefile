@@ -32,7 +32,8 @@ col = ["discovery", "replication"]
 
 rule all:
   input: 
-    expand("{RESULTSDIR}/{data}/{col}.stats.txt.gz", RESULTSDIR = RESULTSDIR, col=col, data=DATA)
+    #expand("{RESULTSDIR}/{data}/{col}.stats.txt.gz", RESULTSDIR = RESULTSDIR, col=col, data=DATA)
+    expand("{RESULTSDIR}/{data}/MR_vs_All.RData", RESULTSDIR = RESULTSDIR, data=DATA)
 
 
 # Create a mapping of old ukb-b IDs to new
@@ -162,7 +163,23 @@ python run_replication.py \
 
 # Count tophits
 rule top_hits:
+  input:
+    "{RESULTSDIR}/{data}/{col}.stats.txt.gz"
   output:
     "{DATADIR}/count_tophits.txt"
   shell:
     "Rscript count_tophits.r {IGDDIR} {DATADIR} {RESULTSDIR}"
+
+
+
+
+# MR all vs all
+rule mr_all:
+  input:
+    "{RESULTSDIR}/{data}/{col}.statsfile.txt.gz"
+  output:
+    "{RESULTSDIR}/{data}/MR_vs_All.RData"
+  shell:
+    "Rscript ../../mr/scripts/mr_All_vs_All.r {DATADIR} {RESULTSDIR} {data}"
+
+

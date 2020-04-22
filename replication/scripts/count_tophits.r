@@ -7,7 +7,6 @@ datadir <- args[2]
 resultsdir <- args[3]
 
 # Read all phenotype names ands define each phenotype id
-#id <- "ukb-b-19953"
 
 phen_all <- read.table(paste(datadir,"/ukb-b-idlist.txt",sep=""))
 
