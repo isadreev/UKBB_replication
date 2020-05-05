@@ -33,6 +33,7 @@ col = ["discovery", "replication"]
 rule all:
   input: 
     #expand("{RESULTSDIR}/{data}/{col}.stats.txt.gz", RESULTSDIR = RESULTSDIR, col=col, data=DATA)
+    #expand("{DATADIR}/count_tophits.txt", DATADIR=DATADIR),
     expand("{RESULTSDIR}/{data}/MR_vs_All.RData", RESULTSDIR = RESULTSDIR, data=DATA)
 
 
@@ -164,7 +165,7 @@ python run_replication.py \
 # Count tophits
 rule top_hits:
   input:
-    "{RESULTSDIR}/{data}/{col}.stats.txt.gz"
+    expand("{RESULTSDIR}/{data}/{col}.stats.txt.gz", RESULTSDIR = RESULTSDIR, col=col, data=DATA)
   output:
     "{DATADIR}/count_tophits.txt"
   shell:
@@ -176,10 +177,10 @@ rule top_hits:
 # MR all vs all
 rule mr_all:
   input:
-    "{RESULTSDIR}/{data}/{col}.statsfile.txt.gz"
+    expand("{DATADIR}/count_tophits.txt", DATADIR=DATADIR)
   output:
     "{RESULTSDIR}/{data}/MR_vs_All.RData"
   shell:
-    "Rscript ../../mr/scripts/mr_All_vs_All.r {DATADIR} {RESULTSDIR} {data}"
+    "Rscript ../../mr/scripts/mr_All_vs_All.r {DATADIR} {RESULTSDIR} {wildcards.data}"
 
 

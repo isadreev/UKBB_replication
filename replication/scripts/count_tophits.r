@@ -6,7 +6,7 @@ igddir <- args[1]
 datadir <- args[2]
 resultsdir <- args[3]
 
-# Read all phenotype names ands define each phenotype id
+# Read all phenotype names and define each phenotype id
 
 phen_all <- read.table(paste(datadir,"/ukb-b-idlist.txt",sep=""))
 
@@ -39,17 +39,26 @@ for (id in phen_all[,1])
   if (!is.na(file.size(discoveryfile))) {
     discovery <- fread(discoveryfile, header=TRUE)
     # Find our list of SNPs in the discovery data
-    subset(discovery, SNP %in% clump)
-    nd <- sum(discovery$P_BOLT_LMM_INF < 5e-8)
+    q <- as.numeric(ncol(discovery))
+    ds <- sum(discovery[,..q] < 5e-8)
+    dst <- sum((discovery[,..q] < 5e-8)&(discovery$SNP %in% clump))
   } else {
-    nd <- NA
+    ds <- NA
+    dst <- NA
   }
   
   if (!is.na(file.size(replicationfile))) {
     replication <- fread(replicationfile, header=TRUE)
+    # Find our list of SNPs in the replication data
+    q <- as.numeric(ncol(replication))
+    rs <- sum(replication[,..q] < 5e-8)
+    rst <- sum((replication[,..q] < 5e-8)&(replication$SNP %in% clump))
+  } else {
+    rs <- NA
+    rst <- NA
   }
   
-  temp <- data.frame(phen=id, full=nf, replication=nd)
+  temp <- data.frame(phen=id, total=nf, sign_disc=ds, sign_repl=rs, sign_disc_top=dst, sign_repl_top=rst)
   
   out <- rbind(out,temp)
   

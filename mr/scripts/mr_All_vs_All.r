@@ -19,10 +19,10 @@ for (out in phen_all[,1])
 {
   # ==================== Full MR ==============================
   
-  # Get instruments for BMI
+  # Get instruments for exposure
   exposure_dat <- extract_instruments(exp)
   
-  # Get effects of instruments on outcome (CHD)
+  # Get effects of instruments on outcome
   outcome_dat <- extract_outcome_data(snps=exposure_dat$SNP, outcomes=out)
   
   nrow(data.frame(outcome_dat))
