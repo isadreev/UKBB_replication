@@ -10,6 +10,7 @@ RESULTSDIR = config["resultsdir"]
 os.makedirs(RESULTSDIR, exist_ok=True)
 PHENDIR = config["phendir"]
 GENODIR = config["genodir"]
+VCFDIR = config["vcfdir"]
 PIPELINEDIR = config["pipelinedir"]
 USER = os.environ['USER']
 BOLTDIR = "/mnt/storage/home/" + USER + "/downloads/BOLT-LMM_v2.3.4"
@@ -172,8 +173,6 @@ rule top_hits:
     "Rscript count_tophits.r {IGDDIR} {DATADIR} {RESULTSDIR}"
 
 
-
-
 # MR all vs all
 rule mr_all:
   input:
@@ -181,6 +180,6 @@ rule mr_all:
   output:
     "{RESULTSDIR}/{data}/MR_vs_All.RData"
   shell:
-    "Rscript ../../mr/scripts/mr_All_vs_All.r {DATADIR} {RESULTSDIR} {wildcards.data}"
+    "Rscript ../../mr/scripts/mr_All_vs_All.r {DATADIR} {RESULTSDIR} {VCFDIR} {wildcards.data}"
 
 
