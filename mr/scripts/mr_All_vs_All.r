@@ -124,8 +124,7 @@ for (exp in phen_all[,1])
     res_r <- NA
   }
 
-  #tmp <- list(Full=subset(res, id.exposure==exp), Replication=res_r)
-  tmp <- list(Replication=res_r)
+  tmp <- list(Full=subset(res, id.exposure==exp), Replication=res_r)
   mybiglist[[exp]] <- tmp
 }
 
