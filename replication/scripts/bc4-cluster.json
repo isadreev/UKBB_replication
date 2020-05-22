@@ -24,6 +24,11 @@
         {
                 "name": "{rule}.{wildcards.data}",
                 "output": "job_reports/{rule}.{wildcards.data}.out"
+        },
+        "mr_all" :
+        {
+                "name": "{rule}.{wildcards.data}",
+                "output": "job_reports/{rule}.{wildcards.data}.out"
         }
 }
 

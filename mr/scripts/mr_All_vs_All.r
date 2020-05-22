@@ -57,15 +57,80 @@ mybiglist <- list()
 
 for (exp in phen_all[,1])
 { 
+  print(paste("exposure=",exp))
+  print(paste("outcome=",out))
+
   # Read the results of GWAS
   df <- paste(resultsdir,exp,"discovery.statsfile.txt.gz",sep="/")
   dsc <- read.table(df,header=TRUE)
 
+  dsc1 <- dsc[,c("SNP","ALLELE1","ALLELE0","A1FREQ","BETA", "SE",tail(colnames(dsc),1))]
+  colnames(dsc1) <- c("SNP",
+    "effect_allele.exposure",
+    "other_allele.exposure",
+    "eaf.exposure",
+    "beta.exposure",
+    "se.exposure",
+    "pval.exposure")
+  dsc2 <- dsc1[order(dsc1$SNP, dsc1$pval.exposure), ]
+  dsc2 <- dsc2[ !duplicated(dsc2$SNP), ]  
+  dsc3 <- cbind(dsc2,
+    "exposure"=rep("exposure",nrow(dsc2)),
+    "mr_keep.exposure"=rep("TRUE", nrow(dsc2)),
+    "pval_origin.exposure"=rep("reported", nrow(dsc2)),
+    "id.exposure"=rep(exp, nrow(dsc2)),
+    "data_source.exposure"=rep("textfile", nrow(dsc2)))
+
+
+
+
   rf <- paste(resultsdir,exp,"replication.statsfile.txt.gz",sep="/")
   rpc <- read.table(rf,header=TRUE)
 
+  rpc1 <- rpc[,c("SNP","ALLELE1","ALLELE0","A1FREQ","BETA", "SE",tail(colnames(rpc),1))]
+  colnames(rpc1) <- c("SNP",
+    "effect_allele.exposure",
+    "other_allele.exposure",
+    "eaf.exposure",
+    "beta.exposure",
+    "se.exposure",
+    "pval.exposure")
+  rpc2 <- rpc1[order(rpc1$SNP, rpc1$pval.exposure), ]
+  rpc2 <- rpc2[ !duplicated(rpc2$SNP), ]  
+  rpc3 <- cbind(rpc2,
+    "exposure"=rep("exposure",nrow(rpc2)),
+    "mr_keep.exposure"=rep("TRUE", nrow(rpc2)),
+    "pval_origin.exposure"=rep("reported", nrow(rpc2)),
+    "id.exposure"=rep(exp, nrow(rpc2)),
+    "data_source.exposure"=rep("textfile", nrow(rpc2)))
+
+
+
   of <- paste(resultsdir,out,"replication.statsfile.txt.gz",sep="/")
   opt <- read.table(of,header=TRUE)
+
+  opt1 <- opt[,c("SNP","ALLELE1","ALLELE0","A1FREQ","BETA", "SE",tail(colnames(opt),1))]
+  colnames(opt1) <- c("SNP",
+    "effect_allele.outcome",
+    "other_allele.outcome",
+    "eaf.outcome",
+    "beta.outcome",
+    "se.outcome",
+    "pval.outcome")
+  opt2 <- opt1[order(opt1$SNP, opt1$pval.outcome), ]
+  opt2 <- opt2[ !duplicated(opt2$SNP), ]  
+  opt3 <- cbind(opt2,
+    "outcome"=rep("outcome",nrow(opt2)),
+    "mr_keep.outcome"=rep("TRUE", nrow(opt2)),
+    "pval_origin.outcome"=rep("reported", nrow(opt2)),
+    "id.outcome"=rep(out, nrow(opt2)),
+    "data_source.outcome"=rep("textfile", nrow(opt2)))
+
+
+  disc_gwas <- dsc3
+  repl_gwas <- rpc3
+  out_gwas <- opt3
+
 
 
   disc_gwas <- read_exposure_data(
@@ -75,34 +140,34 @@ for (exp in phen_all[,1])
     beta_col = "BETA",
     se_col = "SE",
     effect_allele_col = "ALLELE1",
-    other_allele_col = "ALLELE0",
+   other_allele_col = "ALLELE0",
     eaf_col = "A1FREQ",
     pval_col = tail(colnames(dsc),1)
   )
   
-  repl_gwas <- read_exposure_data(
-    filename = rf,
-    sep = "\t",
-    snp_col = "SNP",
-    beta_col = "BETA",
-    se_col = "SE",
-    effect_allele_col = "ALLELE1",
-    other_allele_col = "ALLELE0",
-    eaf_col = "A1FREQ",
-    pval_col = tail(colnames(rpc),1)
-  )
+  #repl_gwas <- read_exposure_data(
+  #  filename = rf,
+  #  sep = "\t",
+  #  snp_col = "SNP",
+  #  beta_col = "BETA",
+  #  se_col = "SE",
+  #  effect_allele_col = "ALLELE1",
+  #  other_allele_col = "ALLELE0",
+  #  eaf_col = "A1FREQ",
+  #  pval_col = tail(colnames(rpc),1)
+  #)
   
-  out_gwas <- read_outcome_data(
-    filename = of,
-    sep = "\t",
-    snp_col = "SNP",
-    beta_col = "BETA",
-    se_col = "SE",
-    effect_allele_col = "ALLELE1",
-    other_allele_col = "ALLELE0",
-    eaf_col = "A1FREQ",
-    pval_col = tail(colnames(opt),1)
-  )
+  #out_gwas <- read_outcome_data(
+  #  filename = of,
+  #  sep = "\t",
+  # snp_col = "SNP",
+  #  beta_col = "BETA",
+  #  se_col = "SE",
+  #  effect_allele_col = "ALLELE1",
+  #  other_allele_col = "ALLELE0",
+  #  eaf_col = "A1FREQ",
+  #  pval_col = tail(colnames(opt),1)
+  #)
   
   # Filtering SNPs for their presence in the phenotype and for p-val
   
@@ -124,8 +189,8 @@ for (exp in phen_all[,1])
     res_r <- NA
   }
 
-  tmp <- list(Full=subset(res, id.exposure==exp), Replication=res_r)
-  mybiglist[[exp]] <- tmp
+  #tmp <- list(Full=subset(res, id.exposure==exp), Replication=res_r)
+  #mybiglist[[exp]] <- tmp
 }
 
 # Save all results
