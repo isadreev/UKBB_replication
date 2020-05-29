@@ -174,9 +174,20 @@ rule top_hits:
 
 
 # MR all vs all
-rule mr_all:
+# Preparation
+rule mr_prep:
   input:
     expand("{DATADIR}/count_tophits.txt", DATADIR=DATADIR)
+  output:
+    "{DATADIR}/Exp_dat.txt"
+  shell:
+    "Rscript ../../mr/scripts/mr_prep.r {DATADIR}"
+
+
+# Run the analysis
+rule mr_all:
+  input:
+    expand("{DATADIR}/Exp_dat.txt", DATADIR=DATADIR)
   output:
     "{RESULTSDIR}/{data}/MR_vs_All.RData"
   shell:
