@@ -179,7 +179,7 @@ rule mr_prep:
   input:
     expand("{DATADIR}/count_tophits.txt", DATADIR=DATADIR)
   output:
-    "{DATADIR}/Exp_dat.txt"
+    "{DATADIR}/MR_prep.RData"
   shell:
     "Rscript ../../mr/scripts/mr_prep.r {DATADIR}"
 
@@ -187,7 +187,7 @@ rule mr_prep:
 # Run the analysis
 rule mr_all:
   input:
-    expand("{DATADIR}/Exp_dat.txt", DATADIR=DATADIR)
+    expand("{DATADIR}/MR_prep.RData", DATADIR=DATADIR)
   output:
     "{RESULTSDIR}/{data}/MR_vs_All.RData"
   shell:

@@ -18,7 +18,9 @@ vcfdir <- args[3]
 out <- args[4]
 
 
-mr_analysis <- function(exp,d,r) {
+# ======================== Functions ==============================
+
+mr_analysis <- function(exp,d,r,out_gwas) {
   print(paste("exposure=",exp))
 
   # Read the results of GWAS
@@ -75,7 +77,7 @@ mr_analysis <- function(exp,d,r) {
   
 
   # Filtering SNPs for their presence in the phenotype and for p-val
-  snp_exp <- subset(exposure_dat, id.exposure == exp)$SNP
+  snp_exp <- as.character(subset(dat, id.exposure == exp)$SNP)
 
   disc_gwas_f <- subset(disc_gwas,SNP %in% snp_exp & pval.exposure < 5e-8)
 
@@ -87,67 +89,170 @@ mr_analysis <- function(exp,d,r) {
 
   out_gwas_s <- subset(out_gwas,SNP %in% repl_gwas_s$SNP)
   
+  # DR and D scenarios
   if (!nrow(disc_gwas_f)==0) {
     # Harmonise the exposure and outcome data
-    dat_r <- harmonise_data(repl_gwas_f, out_gwas_f, action=1)
-    dat_r_d <- harmonise_data(disc_gwas_f, out_gwas_f, action=1)
-    dat_r_r <- harmonise_data(repl_gwas_s, out_gwas_s, action=1)
+    dat_dr <- harmonise_data(repl_gwas_f, out_gwas_f, action=1)
+    dat_d <- harmonise_data(disc_gwas_f, out_gwas_f, action=1)
   
     # Perform MR on the replication data
-    res_r <- mr(dat_r)
-    het_r <- mr_heterogeneity(dat_r)
+    res_dr <- mr(dat_dr)
+    if (nrow(res_dr)==0) {
+      res_dr <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+    }
+    res_dr <- cbind(res_dr,"data"=rep("DR", nrow(res_dr)))
+
+    het_dr <- mr_heterogeneity(dat_dr)
+    if (nrow(het_dr)==0) {
+      het_dr <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+    }
+    het_dr <- cbind(het_dr,"data"=rep("DR", nrow(het_dr)))
 
     # Perform MR on the discovery sign data
-    res_r_d <- mr(dat_r_d)
-    het_r_d <- mr_heterogeneity(dat_r_d)
+    res_d <- mr(dat_d)
+    if (nrow(res_d)==0) {
+      res_d <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+    }
+    res_d <- cbind(res_d,"data"=rep("D", nrow(res_d)))
 
+    het_d <- mr_heterogeneity(dat_d)
+    if (nrow(het_d)==0) {
+      het_d <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+    }
+    het_d <- cbind(het_d,"data"=rep("D", nrow(het_d)))
+
+  } else {
+    res_dr <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+    res_dr <- cbind(res_dr,"data"=rep("DR", nrow(res_dr)))
+
+    het_dr <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+    het_dr <- cbind(het_dr,"data"=rep("DR", nrow(het_dr)))
+
+    res_d <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+    res_d <- cbind(res_d,"data"=rep("D", nrow(res_d)))
+
+    het_d <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+    het_d <- cbind(het_d,"data"=rep("D", nrow(het_d)))
+  }
+
+
+  # R scenario
+  if (!nrow(repl_gwas_s)==0) {
+    # Harmonise the exposure and outcome data
+    dat_r <- harmonise_data(repl_gwas_s, out_gwas_s, action=1)
+    
     # Perform MR on the replication sign data
-    res_r_r <- mr(dat_r_r)
-    het_r_r <- mr_heterogeneity(dat_r_r)
+    res_r <- mr(dat_r)
+    if (nrow(res_r)==0) {
+      res_r <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+    }
+    res_r <- cbind(res_r,"data"=rep("R", nrow(res_r)))
+
+    het_r <- mr_heterogeneity(dat_r)
+    if (nrow(het_r)==0) {
+      het_r <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+    }
+    het_r <- cbind(het_r,"data"=rep("R", nrow(het_r)))
 
   } else {
-    res_r <- NA
-    het_r <- NA
+    res_r <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+    res_r <- cbind(res_r,"data"=rep("R", nrow(res_r)))
+
+    het_r <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+    het_r <- cbind(het_r,"data"=rep("R", nrow(het_r)))
   }
 
-  
   } else {
-    res_r <- "No BETA"
-    het_r <- "No BETA"
+    res_dr <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+    res_dr <- cbind(res_dr,"data"=rep("DR", nrow(res_dr)))
+
+    het_dr <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+    het_dr <- cbind(het_dr,"data"=rep("DR", nrow(het_dr)))
+
+    res_d <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+    res_d <- cbind(res_d,"data"=rep("D", nrow(res_d)))
+
+    het_d <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+    het_d <- cbind(het_d,"data"=rep("D", nrow(het_d)))
+
+    res_r <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+    res_r <- cbind(res_r,"data"=rep("R", nrow(res_r)))
+
+    het_r <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+    het_r <- cbind(het_r,"data"=rep("R", nrow(het_r)))
   }
 
-  mr_rep <- list(MR=res_r, Het=het_r)
+  mr_res <- rbind(res_dr,res_d,res_r)
+  mr_het <- rbind(het_dr,het_d,het_r)
 
-  return(mr_rep)
+  res_list <- list("mr" = mr_res, "het" = mr_het)
+
+  return(res_list)
 
 }
 
 
 
 
+outcome <- function(x) {
+  of <- paste(resultsdir,"/",out,"/",x,".statsfile.txt.gz",sep="")
+  opt <- fread(of,header=TRUE)
+  opt <- as.data.frame(opt)
+
+  opt1 <- opt[,c("SNP","ALLELE1","ALLELE0","A1FREQ","BETA", "SE",tail(colnames(opt),1))]
+  colnames(opt1) <- c("SNP",
+    "effect_allele.outcome",
+    "other_allele.outcome",
+    "eaf.outcome",
+    "beta.outcome",
+    "se.outcome",
+    "pval.outcome")
+  opt2 <- opt1[order(opt1$SNP, opt1$pval.outcome), ]
+  opt2 <- opt2[ !duplicated(opt2$SNP), ]  
+  opt3 <- cbind(opt2,
+    "outcome"=rep("outcome",nrow(opt2)),
+    "mr_keep.outcome"=rep("TRUE", nrow(opt2)),
+    "pval_origin.outcome"=rep("reported", nrow(opt2)),
+    "id.outcome"=rep(out, nrow(opt2)),
+    "data_source.outcome"=rep("textfile", nrow(opt2)))
+
+  out_gwas <- opt3
+
+  return(out_gwas)
+
+}
 
 
+# ======================== Run ==============================
 
 # Read all phenotype names ands define each phenotype id
 phen_all <- fread(paste(datadir,"ukb-b-idlist.txt",sep="/"), header=FALSE)
 phen_all <- as.data.frame(phen_all)
 
-# ==================== Full MR ==============================
+# ---------------------- Full MR ----------------------------
   
 # Read instruments for all of the exposures
-exposure_dat <- fread(paste(datadir,"Exp_dat.txt",sep="/"), header=TRUE)
-exposure_dat <- as.data.frame(exposure_dat)
-
-# Need to extract each of those variants from every ukb-b dataset
-# First define list of unique variants
-snplist <- unique(exposure_dat$SNP)
-  
-
-# Get effects of instruments on outcome using vcf files
-
-# Get the chr:pos of every SNP
-snplist_info <- ieugwasr::variants_rsid(snplist)
-chrpos <- paste0(snplist_info$chr, ":", snplist_info$pos)
+load(paste(datadir,"MR_prep.RData",sep="/"))
+exposure_dat <- mybiglist$exp_dat
+chrpos <- mybiglist$chr_pos
 
 # Lookup from one dataset
 filename <- paste(vcfdir,"/",out,"/",out,".vcf.gz",sep="")
@@ -157,54 +262,88 @@ out1 <- query_gwas(filename, chrompos=chrpos)
 out2 <- gwasglue::gwasvcf_to_TwoSampleMR(out1, "outcome")
 
 # Harmonise the exposure and outcome data
-dat <- harmonise_data(exposure_dat, out2)
+dat <- harmonise_data(exposure_dat, out2, action=1)
 
-#dat <- dat[dat$id.exposure==exp,]
+# testing for one exposure only: 
+# dat <- dat[dat$id.exposure==exp,]
 
 # Perform full MR
 res <- mr(dat)
+if (nrow(res)==0) {
+      res <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+    }
 res <- res %>% mutate(outcome = tolower(outcome))
+res$id.outcome <- res$outcome
+
 
 het <- mr_heterogeneity(dat)
+if (nrow(het)==0) {
+      het <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+    }
 het <- het %>% mutate(outcome = tolower(outcome))
+het$id.outcome <- het$outcome
 
   
-# ==================== Replication ===========================
-mybiglist <- list()
+# ---------------------- Replication -------------------------
+out_gwas_d <- outcome("discovery")
 
-of <- paste(resultsdir,out,"replication.statsfile.txt.gz",sep="/")
-opt <- fread(of,header=TRUE)
-opt <- as.data.frame(opt)
+out_gwas_r <- outcome("replication")
 
-opt1 <- opt[,c("SNP","ALLELE1","ALLELE0","A1FREQ","BETA", "SE",tail(colnames(opt),1))]
-colnames(opt1) <- c("SNP",
-  "effect_allele.outcome",
-  "other_allele.outcome",
-  "eaf.outcome",
-  "beta.outcome",
-  "se.outcome",
-  "pval.outcome")
-opt2 <- opt1[order(opt1$SNP, opt1$pval.outcome), ]
-opt2 <- opt2[ !duplicated(opt2$SNP), ]  
-opt3 <- cbind(opt2,
-  "outcome"=rep("outcome",nrow(opt2)),
-  "mr_keep.outcome"=rep("TRUE", nrow(opt2)),
-  "pval_origin.outcome"=rep("reported", nrow(opt2)),
-  "id.outcome"=rep(out, nrow(opt2)),
-  "data_source.outcome"=rep("textfile", nrow(opt2)))
-
-out_gwas <- opt3
+mr_out <- c()
+het_out <- c()
 
 for (exp in phen_all[,1])
 { 
-  mr_full <- list(MR=subset(res, id.exposure==exp), Het=subset(het, id.exposure==exp))
+  mr_full <- subset(res, id.exposure==exp)
+  if (nrow(mr_full)==0) {
+      mr_full <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+    }
+  mr_full <- cbind(mr_full,"data"=rep("full", nrow(mr_full)))
+  mr_full <- cbind(mr_full,"dir"="NA")
 
-  mr_rep <- mr_analysis(exp,"discovery","replication")
-  tmp <- list(Full=mr_full, Replication=mr_rep)
-  mybiglist[[exp]] <- tmp
+  het_full <- subset(het, id.exposure==exp)
+  if (nrow(het_full)==0) {
+      het_full <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+        "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+    }
+  het_full <- cbind(het_full,"data"=rep("full", nrow(het_full)))
+  het_full <- cbind(het_full,"dir"="NA")
+
+  mr_rep_AB <- mr_analysis(exp,"discovery","replication",out_gwas_r)
+  
+  mr_AB <- mr_rep_AB$mr
+  mr_AB <- cbind(mr_AB,"dir"=rep("AB", nrow(mr_AB)))
+
+  het_AB <- mr_rep_AB$het
+  het_AB <- cbind(het_AB,"dir"=rep("AB", nrow(het_AB)))
+
+
+
+  mr_rep_BA <- mr_analysis(exp,"replication","discovery",out_gwas_d)
+
+  mr_BA <- mr_rep_BA$mr
+  mr_BA <- cbind(mr_BA,"dir"=rep("BA", nrow(mr_BA)))
+
+  het_BA <- mr_rep_BA$het
+  het_BA <- cbind(het_BA,"dir"=rep("BA", nrow(het_BA)))
+
+
+  mr_out <- rbind(mr_out,mr_full,mr_AB,mr_BA)
+  het_out <- rbind(het_out,het_full,het_AB,het_BA)
 
 }
 
 # Save all results
-save(mybiglist, file = paste(resultsdir,out,"MR_vs_All.RData",sep="/"))
+write.table(mr_out, file = paste(resultsdir,out,"MR_All_vs_All.txt",sep="/"), append = FALSE, quote = TRUE, sep = " ",
+            eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+            col.names = TRUE, qmethod = c("escape", "double"),
+            fileEncoding = "")
+
+write.table(het_out, file = paste(resultsdir,out,"MR_Het_All_vs_All.txt",sep="/"), append = FALSE, quote = TRUE, sep = " ",
+            eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+            col.names = TRUE, qmethod = c("escape", "double"),
+            fileEncoding = "")
 
