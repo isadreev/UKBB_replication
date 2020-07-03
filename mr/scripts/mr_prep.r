@@ -13,7 +13,7 @@ args <- commandArgs(T)
 
 datadir <- args[1]
 
-# Read all phenotype names ands define each phenotype id
+# Read all phenotype names and define each phenotype id
 phen_all <- fread(paste(datadir,"ukb-b-idlist.txt",sep="/"), header=FALSE)
 phen_all <- as.data.frame(phen_all)
 

@@ -15,6 +15,7 @@ PIPELINEDIR = config["pipelinedir"]
 USER = os.environ['USER']
 BOLTDIR = "/mnt/storage/home/" + USER + "/downloads/BOLT-LMM_v2.3.4"
 IGDDIR = config["igddir"]
+SDDIR = config["sddir"]
 os.makedirs('job_reports', exist_ok=True)
 
 # Define chromosomes
@@ -35,7 +36,7 @@ rule all:
   input: 
     #expand("{RESULTSDIR}/{data}/{col}.stats.txt.gz", RESULTSDIR = RESULTSDIR, col=col, data=DATA)
     #expand("{DATADIR}/count_tophits.txt", DATADIR=DATADIR),
-    expand("{RESULTSDIR}/{data}/MR_vs_All.RData", RESULTSDIR = RESULTSDIR, data=DATA)
+    expand("{RESULTSDIR}/{data}/MR_Het_All_vs_All.txt", RESULTSDIR = RESULTSDIR, data=DATA)
 
 
 # Create a mapping of old ukb-b IDs to new
@@ -189,8 +190,20 @@ rule mr_all:
   input:
     expand("{DATADIR}/MR_prep.RData", DATADIR=DATADIR)
   output:
-    "{RESULTSDIR}/{data}/MR_vs_All.RData"
+    "{RESULTSDIR}/{data}/MR_Het_All_vs_All.txt"
   shell:
     "Rscript ../../mr/scripts/mr_All_vs_All.r {DATADIR} {RESULTSDIR} {VCFDIR} {wildcards.data}"
+
+
+# Combine the results
+rule combine_res:
+  input:
+    expand("{RESULTSDIR}/{data}/MR_Het_All_vs_All.txt", RESULTSDIR = RESULTSDIR, data=DATA)
+  output:
+    "{DATADIR}/MR_Het_All_vs_All_combined.txt"
+  shell:
+    "Rscript ../../mr/scripts/mr_combine_res.r {DATADIR} {RESULTSDIR} {SDDIR}"
+
+
 
 

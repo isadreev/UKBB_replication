@@ -39,6 +39,11 @@ The phenotype and genotype files have different IDs. They need to be linked usin
 ﻿
 The list of individuals to include based on population are here: https://github.com/MRCIEU/BiobankGWAS/blob/master/scripts/config.py#L53
 
+## Paper
+
+Current version of the paper can be found here:
+https://uob-my.sharepoint.com/personal/kf19639_bristol_ac_uk/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fkf19639%5Fbristol%5Fac%5Fuk%2FDocuments%2FProjects%2FUKBB%5Freplication
+
 
 ## To run everything on bc4
 
