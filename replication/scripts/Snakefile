@@ -16,6 +16,7 @@ USER = os.environ['USER']
 BOLTDIR = "/mnt/storage/home/" + USER + "/downloads/BOLT-LMM_v2.3.4"
 IGDDIR = config["igddir"]
 SDDIR = config["sddir"]
+IMGDIR = config["imgdir"]
 os.makedirs('job_reports', exist_ok=True)
 
 # Define chromosomes
@@ -36,7 +37,8 @@ rule all:
   input: 
     #expand("{RESULTSDIR}/{data}/{col}.stats.txt.gz", RESULTSDIR = RESULTSDIR, col=col, data=DATA)
     #expand("{DATADIR}/count_tophits.txt", DATADIR=DATADIR),
-    expand("{RESULTSDIR}/{data}/MR_Het_All_vs_All.txt", RESULTSDIR = RESULTSDIR, data=DATA)
+    #expand("{RESULTSDIR}/{data}/MR_Het_All_vs_All.txt", RESULTSDIR = RESULTSDIR, data=DATA)
+    expand("{DATADIR}/Regression_estimates.txt", DATADIR = DATADIR)
 
 
 # Create a mapping of old ukb-b IDs to new
@@ -200,9 +202,9 @@ rule combine_res:
   input:
     expand("{RESULTSDIR}/{data}/MR_Het_All_vs_All.txt", RESULTSDIR = RESULTSDIR, data=DATA)
   output:
-    "{DATADIR}/MR_Het_All_vs_All_combined.txt"
+    "{DATADIR}/Regression_estimates.txt"
   shell:
-    "Rscript ../../mr/scripts/mr_combine_res.r {DATADIR} {RESULTSDIR} {SDDIR}"
+    "Rscript ../../mr/scripts/mr_combine_res.r {DATADIR} {RESULTSDIR} {SDDIR} {IMGDIR}"
 
 
 

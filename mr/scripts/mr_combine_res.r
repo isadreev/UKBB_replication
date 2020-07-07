@@ -8,7 +8,8 @@ args <- commandArgs(T)
 
 datadir <- args[1]
 resultsdir <- args[2]
-resultsdir <- args[3]
+sddir <- args[3]
+imgdir <- args[4]
 
 # Read all phenotype names and define each phenotype id
 phen_all <- read.table(paste(datadir,"/ukb-b-idlist.txt",sep=""))
@@ -18,8 +19,6 @@ phen_all <- phen_all %>% mutate(V1 = tolower(V1))
 
 out_mr <- c()
 out_het <- c()
-
-k <- 0
 
 stdevs <- fread(paste(sddir,"ukb-b-sd.csv",sep="/"), header=TRUE)
 
@@ -47,17 +46,14 @@ for (id in phen_all[,1])
   mr_table <- cbind(mr_table,"b_tr"=mr_table$b * mr_table$sd_exp / mr_table$sd_out)
   mr_table <- cbind(mr_table,"se_tr"=mr_table$se * mr_table$sd_exp / mr_table$sd_out)
 
+  mr_table <- cbind(mr_table,"z"=mr_table$b/mr_table$se)
+
+  mr_table <- mr_table[,-c("V1")]
+  
   out_mr <- rbind(out_mr, mr_table)
   out_het <- rbind(out_het, het_table)
 
-  k <- k+1
-
-  print(round(k/length(phen_all[,1])*100))
-
 }
-
-# Remove this later
-out_mr <- fread(paste(datadir,"/MR_All_vs_All_combined.txt",sep=""), header=TRUE)
 
 out_mr <- as.data.frame(out_mr)
 out_het <- as.data.frame(out_het)
@@ -78,23 +74,29 @@ t_mr <- out_mr
 t_mr$pair <- paste(t_mr$id.exposure,t_mr$id.outcome,sep='_')
 
 
-
 res_plot <- function(dr,dr_dt,dt,met) {
   t_mr_dat <- t_mr[t_mr$dir==dr_dt&t_mr$data==dt,]
   t_mr_DR <- t_mr[t_mr$dir==dr&t_mr$data=="DR",]
-  x <- t_mr_dat[,c("method","b_tr","pair")]
-  y <- t_mr_DR[,c("method","b_tr","pair")]
+  x <- t_mr_dat[,c("method","b_tr","z","pair")]
+  y <- t_mr_DR[,c("method","b_tr","z","pair")]
   
   x_met <- subset(x,x$method==met)
   y_met <- subset(y,y$method==met)
   m_met <- merge(x_met, y_met, by.x = "pair", by.y = "pair")
-  m_met <- m_met[,c("pair","b_tr.x","b_tr.y")]
+
+  m_met <- m_met[,c("pair","b_tr.x","b_tr.y","z.x","z.y")]
   row.names(m_met) <- m_met[,"pair"]
   m_met <- m_met[,-1]
-  colnames(m_met) <- c(dt,"DR")
+  colnames(m_met) <- c(dt,"DR",paste("z_",dt,sep=""),"z_DR")
 
-  png(paste(datadir,"/",dr,"_DR_vs_",dr_dt,"_",dt,"_",met,".png",sep=""))
+  png(paste(imgdir,"/",dr,"_DR_vs_",dr_dt,"_",dt,"_",met,".png",sep=""))
   plot(m_met[,dt], m_met$DR,main="Correlation BETA",xlab=paste(dr_dt,dt,sep="_"),ylab=paste(dr,"DR",sep="_"),xlim=c(min(m_met$D, m_met$DR), max(m_met$D, m_met$DR)), ylim=c(min(m_met$D, m_met$DR), max(m_met$D, m_met$DR)))
+  abline(lm(m_met$DR ~ m_met[,dt]))
+  abline(coef = c(0,1),col="red")
+  dev.off()
+
+  png(paste(imgdir,"/Z_",dr,"_DR_vs_",dr_dt,"_",dt,"_",met,".png",sep=""))
+  plot(m_met[,paste("z",dt,sep="_")], m_met$z_DR,main="Correlation Z",xlab=paste("z",dr_dt,dt,sep="_"),ylab=paste("z",dr,"DR",sep="_"),xlim=c(min(m_met$D, m_met$DR), max(m_met$D, m_met$DR)), ylim=c(min(m_met$D, m_met$DR), max(m_met$D, m_met$DR)))
   abline(lm(m_met$DR ~ m_met[,dt]))
   abline(coef = c(0,1),col="red")
   dev.off()
@@ -104,37 +106,57 @@ res_plot <- function(dr,dr_dt,dt,met) {
   #hist(m_met$D,breaks=200)
   #dev.off()
 
+  q <- summary(lm(m_met$DR ~ m_met[,dt]))
+
+  rt <- data.frame("X"=paste(dr_dt,dt,sep="_"),"Y"=paste(dr,"DR",sep="_"),"Method"=met,"Regr_est"=q$coefficients["m_met[, dt]","Estimate"],"Std_err"=q$coefficients["m_met[, dt]","Std. Error"],"p_val"=q$coefficients["m_met[, dt]","Pr(>|t|)"])
+
+  return(rt)
 }
 
 
 
 # Results and plots for different tests
-res_plot("AB","AB","D","MR Egger")
-res_plot("AB","AB","D","Weighted median")
-res_plot("AB","AB","D","Inverse variance weighted")
-res_plot("AB","AB","D","Simple mode")
-res_plot("AB","AB","D","Weighted mode")
+a <- c()
+a <- rbind(a,res_plot("AB","AB","D","MR Egger"))
+a <- rbind(a,res_plot("AB","AB","D","Weighted median"))
+a <- rbind(a,res_plot("AB","AB","D","Inverse variance weighted"))
+a <- rbind(a,res_plot("AB","AB","D","Simple mode"))
+a <- rbind(a,res_plot("AB","AB","D","Weighted mode"))
 
-res_plot("AB","AB","R","MR Egger")
-res_plot("AB","AB","R","Weighted median")
-res_plot("AB","AB","R","Inverse variance weighted")
-res_plot("AB","AB","R","Simple mode")
-res_plot("AB","AB","R","Weighted mode")
+a <- rbind(a,res_plot("AB","AB","R","MR Egger"))
+a <- rbind(a,res_plot("AB","AB","R","Weighted median"))
+a <- rbind(a,res_plot("AB","AB","R","Inverse variance weighted"))
+a <- rbind(a,res_plot("AB","AB","R","Simple mode"))
+a <- rbind(a,res_plot("AB","AB","R","Weighted mode"))
 
-res_plot("BA","BA","D","MR Egger")
-res_plot("BA","BA","D","Weighted median")
-res_plot("BA","BA","D","Inverse variance weighted")
-res_plot("BA","BA","D","Simple mode")
-res_plot("BA","BA","D","Weighted mode")
+a <- rbind(a,res_plot("BA","BA","D","MR Egger"))
+a <- rbind(a,res_plot("BA","BA","D","Weighted median"))
+a <- rbind(a,res_plot("BA","BA","D","Inverse variance weighted"))
+a <- rbind(a,res_plot("BA","BA","D","Simple mode"))
+a <- rbind(a,res_plot("BA","BA","D","Weighted mode"))
 
-res_plot("BA","BA","R","MR Egger")
-res_plot("BA","BA","R","Weighted median")
-res_plot("BA","BA","R","Inverse variance weighted")
-res_plot("BA","BA","R","Simple mode")
-res_plot("BA","BA","R","Weighted mode")
+a <- rbind(a,res_plot("BA","BA","R","MR Egger"))
+a <- rbind(a,res_plot("BA","BA","R","Weighted median"))
+a <- rbind(a,res_plot("BA","BA","R","Inverse variance weighted"))
+a <- rbind(a,res_plot("BA","BA","R","Simple mode"))
+a <- rbind(a,res_plot("BA","BA","R","Weighted mode"))
 
-res_plot("AB","BA","R","MR Egger")
-res_plot("AB","BA","R","Weighted median")
-res_plot("AB","BA","R","Inverse variance weighted")
-res_plot("AB","BA","R","Simple mode")
-res_plot("AB","BA","R","Weighted mode")
+a <- rbind(a,res_plot("AB","BA","R","MR Egger"))
+a <- rbind(a,res_plot("AB","BA","R","Weighted median"))
+a <- rbind(a,res_plot("AB","BA","R","Inverse variance weighted"))
+a <- rbind(a,res_plot("AB","BA","R","Simple mode"))
+a <- rbind(a,res_plot("AB","BA","R","Weighted mode"))
+
+a <- rbind(a,res_plot("BA","AB","R","MR Egger"))
+a <- rbind(a,res_plot("BA","AB","R","Weighted median"))
+a <- rbind(a,res_plot("BA","AB","R","Inverse variance weighted"))
+a <- rbind(a,res_plot("BA","AB","R","Simple mode"))
+a <- rbind(a,res_plot("BA","AB","R","Weighted mode"))
+
+a <- a[!a$Method=="MR Egger",]
+
+# Save all results
+write.table(a, file = paste(datadir,"/Regression_estimates.txt",sep=""), append = FALSE, quote = TRUE, sep = " ",
+            eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+            col.names = TRUE, qmethod = c("escape", "double"),
+            fileEncoding = "")
