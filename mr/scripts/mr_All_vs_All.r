@@ -20,7 +20,37 @@ out <- args[4]
 
 # ======================== Functions ==============================
 
-mr_analysis <- function(exp,d,r,out_gwas) {
+mr_analysis <- function(exp,d,r) {
+  # outcome (always the same as r)
+  of <- paste(resultsdir,"/",out,"/",r,".statsfile.txt.gz",sep="")
+  opt <- fread(of,header=TRUE)
+  opt <- as.data.frame(opt)
+  
+  
+  if ("BETA" %in% colnames(opt)) {
+    opt1 <- opt[,c("SNP","ALLELE1","ALLELE0","A1FREQ","BETA", "SE",tail(colnames(opt),1))]
+    colnames(opt1) <- c("SNP",
+                        "effect_allele.outcome",
+                        "other_allele.outcome",
+                        "eaf.outcome",
+                        "beta.outcome",
+                        "se.outcome",
+                        "pval.outcome")
+    opt2 <- opt1[order(opt1$SNP, opt1$pval.outcome), ]
+    opt2 <- opt2[ !duplicated(opt2$SNP), ]  
+    opt3 <- cbind(opt2,
+                  "outcome"=rep("outcome",nrow(opt2)),
+                  "mr_keep.outcome"=rep("TRUE", nrow(opt2)),
+                  "pval_origin.outcome"=rep("reported", nrow(opt2)),
+                  "id.outcome"=rep(out, nrow(opt2)),
+                  "data_source.outcome"=rep("textfile", nrow(opt2)))
+    
+    out_gwas <- opt3
+  } else {
+    out_gwas <- "NA"
+  }
+
+  # MR analysis
   if (!out_gwas=="NA") {
     print(paste("exposure=",exp))
     
@@ -82,11 +112,13 @@ mr_analysis <- function(exp,d,r,out_gwas) {
       
       disc_gwas_f <- subset(disc_gwas,SNP %in% snp_exp & pval.exposure < 5e-8)
       
+      repl_gwas_f <- subset(repl_gwas,SNP %in% disc_gwas_f$SNP)
+
+      out_gwas_f <- subset(out_gwas,SNP %in% disc_gwas_f$SNP)
+
       repl_gwas_s <- subset(repl_gwas,SNP %in% snp_exp & pval.exposure < 5e-8)
       
-      repl_gwas_f <- subset(repl_gwas,SNP %in% disc_gwas_f$SNP)
-      
-      out_gwas_f <- subset(out_gwas,SNP %in% disc_gwas_f$SNP)
+      disc_gwas_s <- subset(disc_gwas,SNP %in% repl_gwas_s$SNP)
       
       out_gwas_s <- subset(out_gwas,SNP %in% repl_gwas_s$SNP)
       
@@ -145,11 +177,29 @@ mr_analysis <- function(exp,d,r,out_gwas) {
       }
       
       
-      # R scenario
+      # RD and R scenario
       if (!nrow(repl_gwas_s)==0) {
         # Harmonise the exposure and outcome data
+        dat_rd <- harmonise_data(disc_gwas_s, out_gwas_s, action=1)
         dat_r <- harmonise_data(repl_gwas_s, out_gwas_s, action=1)
         
+        # Perform MR on the discovery data
+        res_rd <- mr(dat_rd)
+        if (nrow(res_rd)==0) {
+          res_rd <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+                               "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+        }
+        res_rd <- cbind(res_rd,"data"=rep("RD", nrow(res_rd)))
+        
+        het_rd <- mr_heterogeneity(dat_rd)
+        if (nrow(het_rd)==0) {
+          het_rd <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+                               "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+        }
+        het_rd <- cbind(het_rd,"data"=rep("RD", nrow(het_rd)))
+        
+
+
         # Perform MR on the replication sign data
         res_r <- mr(dat_r)
         if (nrow(res_r)==0) {
@@ -166,6 +216,14 @@ mr_analysis <- function(exp,d,r,out_gwas) {
         het_r <- cbind(het_r,"data"=rep("R", nrow(het_r)))
         
       } else {
+        res_rd <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+                             "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+        res_rd <- cbind(res_rd,"data"=rep("RD", nrow(res_rd)))
+        
+        het_rd <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+                             "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+        het_rd <- cbind(het_rd,"data"=rep("RD", nrow(het_rd)))
+        
         res_r <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
                             "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
         res_r <- cbind(res_r,"data"=rep("R", nrow(res_r)))
@@ -191,6 +249,14 @@ mr_analysis <- function(exp,d,r,out_gwas) {
       het_d <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
                           "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
       het_d <- cbind(het_d,"data"=rep("D", nrow(het_d)))
+
+      res_rd <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+                             "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+      res_rd <- cbind(res_rd,"data"=rep("RD", nrow(res_rd)))
+        
+      het_rd <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+                             "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+      het_rd <- cbind(het_rd,"data"=rep("RD", nrow(het_rd)))
       
       res_r <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
                           "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
@@ -217,6 +283,14 @@ mr_analysis <- function(exp,d,r,out_gwas) {
     het_d <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
                         "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
     het_d <- cbind(het_d,"data"=rep("D", nrow(het_d)))
+
+    res_rd <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+                             "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
+    res_rd <- cbind(res_rd,"data"=rep("RD", nrow(res_rd)))
+        
+    het_rd <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
+                             "exposure"="NA","method"="NA","Q"=NA,"Q_df"=NA,"Q_pval"=NA)
+    het_rd <- cbind(het_rd,"data"=rep("RD", nrow(het_rd)))
     
     res_r <- data.frame("id.exposure"=exp,"id.outcome"=out,"outcome"="NA",
                         "exposure"="NA","method"="NA","nsnp"=NA,"b"=NA,"se"=NA,"pval"=NA)
@@ -227,48 +301,13 @@ mr_analysis <- function(exp,d,r,out_gwas) {
     het_r <- cbind(het_r,"data"=rep("R", nrow(het_r)))
   }
   
-  mr_res <- rbind(res_dr,res_d,res_r)
-  mr_het <- rbind(het_dr,het_d,het_r)
+  mr_res <- rbind(res_dr,res_d,res_rd,res_r)
+  mr_het <- rbind(het_dr,het_d,het_rd,het_r)
   
   res_list <- list("mr" = mr_res, "het" = mr_het)
   
   return(res_list)
   
-}
-
-
-
-
-outcome <- function(x) {
-  of <- paste(resultsdir,"/",out,"/",x,".statsfile.txt.gz",sep="")
-  opt <- fread(of,header=TRUE)
-  opt <- as.data.frame(opt)
-  
-  
-  if ("BETA" %in% colnames(opt)) {
-    opt1 <- opt[,c("SNP","ALLELE1","ALLELE0","A1FREQ","BETA", "SE",tail(colnames(opt),1))]
-    colnames(opt1) <- c("SNP",
-                        "effect_allele.outcome",
-                        "other_allele.outcome",
-                        "eaf.outcome",
-                        "beta.outcome",
-                        "se.outcome",
-                        "pval.outcome")
-    opt2 <- opt1[order(opt1$SNP, opt1$pval.outcome), ]
-    opt2 <- opt2[ !duplicated(opt2$SNP), ]  
-    opt3 <- cbind(opt2,
-                  "outcome"=rep("outcome",nrow(opt2)),
-                  "mr_keep.outcome"=rep("TRUE", nrow(opt2)),
-                  "pval_origin.outcome"=rep("reported", nrow(opt2)),
-                  "id.outcome"=rep(out, nrow(opt2)),
-                  "data_source.outcome"=rep("textfile", nrow(opt2)))
-    
-    out_gwas <- opt3
-  } else {
-    out_gwas <- "NA"
-  }
-  
-  return(out_gwas)
 }
 
 
@@ -318,9 +357,6 @@ het$id.outcome <- het$outcome
 
 
 # ---------------------- Replication -------------------------
-out_gwas_d <- outcome("discovery")
-
-out_gwas_r <- outcome("replication")
 
 mr_out <- c()
 het_out <- c()
@@ -343,7 +379,7 @@ for (exp in phen_all[,1])
   het_full <- cbind(het_full,"data"=rep("full", nrow(het_full)))
   het_full <- cbind(het_full,"dir"="NA")
   
-  mr_rep_AB <- mr_analysis(exp,"discovery","replication",out_gwas_r)
+  mr_rep_AB <- mr_analysis(exp,"discovery","replication")
   
   mr_AB <- mr_rep_AB$mr
   mr_AB <- cbind(mr_AB,"dir"=rep("AB", nrow(mr_AB)))
@@ -353,7 +389,7 @@ for (exp in phen_all[,1])
   
   
   
-  mr_rep_BA <- mr_analysis(exp,"replication","discovery",out_gwas_d)
+  mr_rep_BA <- mr_analysis(exp,"replication","discovery")
   
   mr_BA <- mr_rep_BA$mr
   mr_BA <- cbind(mr_BA,"dir"=rep("BA", nrow(mr_BA)))
