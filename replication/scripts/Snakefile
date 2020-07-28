@@ -17,6 +17,7 @@ BOLTDIR = "/mnt/storage/home/" + USER + "/downloads/BOLT-LMM_v2.3.4"
 IGDDIR = config["igddir"]
 SDDIR = config["sddir"]
 IMGDIR = config["imgdir"]
+os.makedirs(IMGDIR, exist_ok=True)
 os.makedirs('job_reports', exist_ok=True)
 
 # Define chromosomes
