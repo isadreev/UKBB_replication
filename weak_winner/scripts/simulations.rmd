@@ -11,16 +11,19 @@ opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE, cache.lazy 
 ```{r}
 library(TwoSampleMR)
 library(tidyverse)
+library(dplyr)
 library(RColorBrewer)
 library('MRInstruments')
 library(ggpubr)
 my_orange = brewer.pal(n = 9, "Oranges")[4:9]
+args <- commandArgs(T)
+datadir <- args[1]
 ```
 
 
 ```{r}
 # Load and prepare the data from simulations for the analysis
-load("../files/results/sim_overlap_nr.rdata")
+load(paste0(datadir,"/sim_overlap_nr.rdata"))
 pp <- param
 
 # Functions required for plotting
@@ -189,7 +192,7 @@ The following strategies were tested:
   3. Sample overlap with half discovery, half replication
   4. Completely independent sample
 
-![Simulations for different scenarios of SNP exposure and SNP outcome effect. Columns represent different confounder values. The corresponding scenarios of sample overlap are shown on the x axis, and the average estimate of the causal effect across 10000 simulations is shown on the y axis, where the causal effect simulated is 0.2 (black dotted line). Top row shows the results for all SNPs whereas the bottom row shows the results for the significant SNPs that pass the significance threshold of 5e-8. The red arrow indicates the dataset that was used as the exposure.](../files/Paper/Figures/Fig_1_1.png)
+![Simulations for different scenarios of SNP exposure and SNP outcome effect. Columns represent different confounder values. The corresponding scenarios of sample overlap are shown on the x axis, and the average estimate of the causal effect across 10000 simulations is shown on the y axis, where the causal effect simulated is 0.2 (black dotted line). Top row shows the results for all SNPs whereas the bottom row shows the results for the significant SNPs that pass the significance threshold of 5e-8.](../images/replication_beta.png)
 
 Conclusions
 

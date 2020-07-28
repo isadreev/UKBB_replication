@@ -30,6 +30,7 @@ main <- function()
   args <- commandArgs(T)
   splitsize <- as.numeric(args[1])
   chunk <- as.numeric(args[2])
+  datadir <- args[3]
   set.seed(chunk)
   
   first <- (chunk-1) * splitsize + 1
@@ -40,16 +41,15 @@ main <- function()
   message(first, " to ", last)
   
   out <- list()
-  #	pb <- progress_bar$new(total=nrow(param))
+  # pb <- progress_bar$new(total=nrow(param))
   for(i in 1:nrow(param))
   {
-    #		pb$tick()
+    #   pb$tick()
     message(i)
     out[[i]] <- suppressMessages(runsim(param[i,]))
   }
   out <- bind_rows(out)
-  dir.create("../results/sim_overlap_nr", recursive=TRUE, showWarnings=FALSE)
-  save(out, file=paste0("../results/sim_overlap_nr/out", chunk, ".rdata"))
+  save(out, file=paste0(datadir,"/sim_data/out", chunk, ".rdata"))
 }
 
 # Function for running the simulations
