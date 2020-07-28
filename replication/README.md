@@ -18,6 +18,7 @@ Create a `config.json` file with relevant paths:
     "pipelinedir": "",
     "datadir": "",
     "resultsdir": "",
+    "imgdir": "",
 }
 ```
 
@@ -27,6 +28,7 @@ Create a `config.json` file with relevant paths:
 * `pipelinedir` = path to original ukb-b gwas pipeline dir
 * `datadir` = where to store generated data
 * `resultsdir` = where to store generated results
+* `imgdir` = where to store generated figures
 
 https://github.com/MRCIEU/BiobankGWAS/blob/master/scripts/config.py
 - this has all the files used for the original analysis
