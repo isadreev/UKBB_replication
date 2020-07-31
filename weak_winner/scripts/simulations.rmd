@@ -142,13 +142,13 @@ x_i &= \textbf{G}_i\textbf{b}_{gx} + b_{ux} u_{i} + e_i \\
 y_i &= \beta x_i + b_{uy} u_{i} + \epsilon_i
 \end{aligned}
 $$
-where $\textbf{G}$ is a matrix of genotype values for $m$ SNPs and $\textbf{b}$ is a vector of effects for each SNP on the exposure, $\beta$ is the causal effect of the exposure $x$ on the outcome $y$. For these simulations we used $m = 20$, and set $b$ and $e$ such that the variance explained by all the SNPs on $x$ was the same for each SNP, and in total $r^2_{gx} \in \{0.04, 0.08, ..., 0.24\}$. Hence, we have a set of different scenarios ranging from all instruments being weak to all instruments being very strong. The causal effect was set to $\beta=0.2$. Confounder values were set such that $b_{ux} = 1$ for all simulations, and $b_{uy} \in \{0, 0.6, 1, 2\}$, hence for some scenarios there was no confounding, and others there was strong confounding (much stronger than the causal effect of x on y). In order to generate different scenarios of sample overlap, we simulated a population of 40000 individuals, and selected 10000 for the exposure and 10000 for the outcome, varying the extent to which the same individuals appeared in both. Each simulation scenario was repeated 10000 times.
+where $\textbf{G}$ is a matrix of genotype values for $m$ SNPs and $\textbf{b}$ is a vector of effects for each SNP on the exposure, $\beta$ is the causal effect of the exposure $x$ on the outcome $y$. For these simulations we used $m = 20$, and set $b$ and $e$ such that the variance explained by all the SNPs on $x$ was the same for each SNP, and in total $r^2_{gx} \in \{0.04, 0.08, ..., 0.24\}$. Hence, we have a set of different scenarios ranging from all instruments being weak to all instruments being very strong. The causal effect was set to $\beta=0$. Confounder values were set such that $b_{ux} = 1$ for all simulations, and $b_{uy} \in \{0, 0.6, 1, 2\}$, hence for some scenarios there was no confounding, and others there was strong confounding (much stronger than the causal effect of x on y). In order to generate different scenarios of sample overlap, we simulated a population of 40000 individuals, and selected 10000 for the exposure and 10000 for the outcome, varying the extent to which the same individuals appeared in both. Each simulation scenario was repeated 10000 times.
 
 Once the data is simulated, we estimate the SNP effects on x and y, and perform IVW to obtain an estimate of $\beta$.
 
 The results from the simulations are plotted below
 
-```{r, fig.cap="For each simulation scenario we averaged the causal effect estimate from 10000 replicates. Columns of boxes represent the confounding value that was simulated, and the x axis represnts the proportion of the sample overlap. Colours of lines represent the average F statistic that was simulated for the SNP effects on the exposure. The true causal effect was simulated to be 0.2, shown by the horizontal black line."}
+```{r, fig.cap="For each simulation scenario we averaged the causal effect estimate from 10000 replicates. Columns of boxes represent the confounding value that was simulated, and the x axis represnts the proportion of the sample overlap. Colours of lines represent the average F statistic that was simulated for the SNP effects on the exposure. The true causal effect was simulated to be 0, shown by the horizontal black line."}
 # cases when overlap only with D
 # subset the D
 param <- disc(pp)
@@ -163,7 +163,7 @@ As seen in Burgess et al 2016, we find that weak instruments lead to bias toward
 
 Here the same simulations are conducted, but now we impose a significance threshold for instruments to be included for the MR analysis. For each simulation we create 20 SNPs, and in the previous set of results we used all of them to estimate the causal effect of x on y. Now, we only allow SNPs to be used if they reach a significance threshold of 5e-8. 
 
-```{r, fig.cap="Comparison of simulations that do or do not impose a significance threshold for instrument selection (colours of lines). Rows of boxes represent the average F value of the instrument strengths, and columns represent the confounder values. Proportion of sample overlap varies on the x axis, and the average estimate of the causal effect across 10000 simulations is shown on the y axis, where the causal effect simulated is 0.2."}
+```{r, fig.cap="Comparison of simulations that do or do not impose a significance threshold for instrument selection (colours of lines). Rows of boxes represent the average F value of the instrument strengths, and columns represent the confounder values. Proportion of sample overlap varies on the x axis, and the average estimate of the causal effect across 10000 simulations is shown on the y axis, where the causal effect simulated is 0."}
 # cases when overlap only with D
 # subset the D
 param <- disc(pp)
@@ -192,7 +192,9 @@ The following strategies were tested:
   3. Sample overlap with half discovery, half replication
   4. Completely independent sample
 
-![Simulations for different scenarios of SNP exposure and SNP outcome effect. Columns represent different confounder values. The corresponding scenarios of sample overlap are shown on the x axis, and the average estimate of the causal effect across 10000 simulations is shown on the y axis, where the causal effect simulated is 0.2 (black dotted line). Top row shows the results for all SNPs whereas the bottom row shows the results for the significant SNPs that pass the significance threshold of 5e-8.](../images/replication_beta.png)
+![Simulations for different scenarios of SNP exposure and SNP outcome effect. Columns represent different confounder values. The corresponding scenarios of sample overlap are shown on the x axis, and the average estimate of the causal effect across 10000 simulations is shown on the y axis, where the causal effect simulated is 0 (black dotted line). Top row shows the results for all SNPs whereas the bottom row shows the results for the significant SNPs that pass the significance threshold of 5e-8.](../images/replication_beta.png)
+
+![Simulations for different scenarios of SNP exposure and SNP outcome effect. Columns represent different confounder values. The corresponding scenarios of sample overlap are shown on the x axis, and the proportion of p values smaller than 0.05 is shown on the y axis. Top row shows the results for all SNPs whereas the bottom row shows the results for the significant SNPs that pass the significance threshold of 5e-8.](../images/replication_prop_sig.png)
 
 Conclusions
 

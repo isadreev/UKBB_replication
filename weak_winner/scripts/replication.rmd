@@ -195,8 +195,6 @@ ress <- filter(res) %>%
   tidyr::separate(what, into=c("exposure_dataset", "instruments"), "_") %>%
   group_by(exposure_dataset, instruments, overlap, buy) %>%
   summarise( n=n(), z=mean(abs(b/se)),prop_sig = sum(pnorm(abs(b/se), lower.tail=FALSE) < 0.05) / n(), se=sd(b)/sqrt(n),b=mean(b))
-
-
 #ress2 <- ress # 0.4
 #ress3 <- ress # 
 #ress4 <- ress # 0
@@ -218,6 +216,4 @@ facet_grid(instruments ~ buy) +
 scale_fill_brewer(type="qual") +
 theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5))
 ggsave(p1, file=paste0(imgdir,"/replication_prop_sig.png"), width=10, height=10)
-
 ```
-

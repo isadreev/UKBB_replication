@@ -364,8 +364,6 @@ res &lt;- mclapply(1:100, function(i) {
   tidyr::separate(what, into=c(&quot;exposure_dataset&quot;, &quot;instruments&quot;), &quot;_&quot;) %&gt;%
   group_by(exposure_dataset, instruments, overlap, buy) %&gt;%
   summarise( n=n(), z=mean(abs(b/se)),prop_sig = sum(pnorm(abs(b/se), lower.tail=FALSE) &lt; 0.05) / n(), se=sd(b)/sqrt(n),b=mean(b))
-
-
 #ress2 &lt;- ress # 0.4
 #ress3 &lt;- ress # 
 #ress4 &lt;- ress # 0
