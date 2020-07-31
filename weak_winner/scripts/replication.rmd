@@ -1,5 +1,5 @@
 ---
-  title: Exploring sample overlap simulations (replication)
+title: Exploring sample overlap simulations (replication)
 ---
 
 ```{r}
@@ -119,7 +119,7 @@ gwas_bias <- function(gwas)
   # sum((gwas$bhat - gwas$b)^2)
   mean(abs(gwas$bhat - gwas$b))
 }
-gwas_sim <- function(nid = 9000, nsnp = 20, bgx = 0.08, bxy = 0, buy = 0.4, bux = 0.4, out_index = 1:3000)
+gwas_sim <- function(nid = 9000, nsnp = 20, bgx = 0.08, bxy = 0.2, buy = 0.4, bux = 0.4, out_index = 1:3000)
 {
   # Simulate population
   g <- make_geno(nid, nsnp, 0.5)
@@ -172,18 +172,30 @@ gwas_sim <- function(nid = 9000, nsnp = 20, bgx = 0.08, bxy = 0, buy = 0.4, bux 
 res <- mclapply(1:100, function(i) {
   message(i)
   bind_rows(
-    gwas_sim(out_index = 1:3000, buy=-0.4)$mr %>% mutate(overlap="disc_overlap", buy=-0.4),
-    gwas_sim(out_index = 3001:6000, buy=-0.4)$mr %>% mutate(overlap="rep_overlap", buy=-0.4),
-    gwas_sim(out_index = 6001:9000, buy=-0.4)$mr %>% mutate(overlap="no_overlap", buy=-0.4),
-    gwas_sim(out_index = 1501:4500, buy=-0.4)$mr %>% mutate(overlap="both_overlap", buy=-0.4),
-    gwas_sim(out_index = 1:3000, buy=0)$mr %>% mutate(overlap="disc_overlap", buy=0),
-    gwas_sim(out_index = 3001:6000, buy=0)$mr %>% mutate(overlap="rep_overlap", buy=0),
-    gwas_sim(out_index = 6001:9000, buy=0)$mr %>% mutate(overlap="no_overlap", buy=0),
-    gwas_sim(out_index = 1501:4500, buy=0)$mr %>% mutate(overlap="both_overlap", buy=0),
-    gwas_sim(out_index = 1:3000, buy=0.4)$mr %>% mutate(overlap="disc_overlap", buy=0.4),
-    gwas_sim(out_index = 3001:6000, buy=0.4)$mr %>% mutate(overlap="rep_overlap", buy=0.4),
-    gwas_sim(out_index = 6001:9000, buy=0.4)$mr %>% mutate(overlap="no_overlap", buy=0.4),
-    gwas_sim(out_index = 1501:4500, buy=0.4)$mr %>% mutate(overlap="both_overlap", buy=0.4)
+    gwas_sim(bxy=0.0, out_index = 1:3000, buy=-0.4)$mr %>% mutate(overlap="disc_overlap", bxy=0.0, buy=-0.4),
+    gwas_sim(bxy=0.0, out_index = 3001:6000, buy=-0.4)$mr %>% mutate(overlap="rep_overlap", bxy=0.0, buy=-0.4),
+    gwas_sim(bxy=0.0, out_index = 6001:9000, buy=-0.4)$mr %>% mutate(overlap="no_overlap", bxy=0.0, buy=-0.4),
+    gwas_sim(bxy=0.0, out_index = 1501:4500, buy=-0.4)$mr %>% mutate(overlap="both_overlap", bxy=0.0, buy=-0.4),
+    gwas_sim(bxy=0.0, out_index = 1:3000, buy=0)$mr %>% mutate(overlap="disc_overlap", bxy=0.0, buy=0),
+    gwas_sim(bxy=0.0, out_index = 3001:6000, buy=0)$mr %>% mutate(overlap="rep_overlap", bxy=0.0, buy=0),
+    gwas_sim(bxy=0.0, out_index = 6001:9000, buy=0)$mr %>% mutate(overlap="no_overlap", bxy=0.0, buy=0),
+    gwas_sim(bxy=0.0, out_index = 1501:4500, buy=0)$mr %>% mutate(overlap="both_overlap", bxy=0.0, buy=0),
+    gwas_sim(bxy=0.0, out_index = 1:3000, buy=0.4)$mr %>% mutate(overlap="disc_overlap", bxy=0.0, buy=0.4),
+    gwas_sim(bxy=0.0, out_index = 3001:6000, buy=0.4)$mr %>% mutate(overlap="rep_overlap", bxy=0.0, buy=0.4),
+    gwas_sim(bxy=0.0, out_index = 6001:9000, buy=0.4)$mr %>% mutate(overlap="no_overlap", bxy=0.0, buy=0.4),
+    gwas_sim(bxy=0.0, out_index = 1501:4500, buy=0.4)$mr %>% mutate(overlap="both_overlap", bxy=0.0, buy=0.4),
+    gwas_sim(bxy=0.2, out_index = 1:3000, buy=-0.4)$mr %>% mutate(overlap="disc_overlap", bxy=0.2, buy=-0.4),
+    gwas_sim(bxy=0.2, out_index = 3001:6000, buy=-0.4)$mr %>% mutate(overlap="rep_overlap", bxy=0.2, buy=-0.4),
+    gwas_sim(bxy=0.2, out_index = 6001:9000, buy=-0.4)$mr %>% mutate(overlap="no_overlap", bxy=0.2, buy=-0.4),
+    gwas_sim(bxy=0.2, out_index = 1501:4500, buy=-0.4)$mr %>% mutate(overlap="both_overlap", bxy=0.2, buy=-0.4),
+    gwas_sim(bxy=0.2, out_index = 1:3000, buy=0)$mr %>% mutate(overlap="disc_overlap", bxy=0.2, buy=0),
+    gwas_sim(bxy=0.2, out_index = 3001:6000, buy=0)$mr %>% mutate(overlap="rep_overlap", bxy=0.2, buy=0),
+    gwas_sim(bxy=0.2, out_index = 6001:9000, buy=0)$mr %>% mutate(overlap="no_overlap", bxy=0.2, buy=0),
+    gwas_sim(bxy=0.2, out_index = 1501:4500, buy=0)$mr %>% mutate(overlap="both_overlap", bxy=0.2, buy=0),
+    gwas_sim(bxy=0.2, out_index = 1:3000, buy=0.4)$mr %>% mutate(overlap="disc_overlap", bxy=0.2, buy=0.4),
+    gwas_sim(bxy=0.2, out_index = 3001:6000, buy=0.4)$mr %>% mutate(overlap="rep_overlap", bxy=0.2, buy=0.4),
+    gwas_sim(bxy=0.2, out_index = 6001:9000, buy=0.4)$mr %>% mutate(overlap="no_overlap", bxy=0.2, buy=0.4),
+    gwas_sim(bxy=0.2, out_index = 1501:4500, buy=0.4)$mr %>% mutate(overlap="both_overlap", bxy=0.2, buy=0.4)
   )
 }, mc.cores=10) %>% bind_rows()
 ```
@@ -193,27 +205,43 @@ Create figure
 ```{r}
 ress <- filter(res) %>%
   tidyr::separate(what, into=c("exposure_dataset", "instruments"), "_") %>%
-  group_by(exposure_dataset, instruments, overlap, buy) %>%
+  group_by(exposure_dataset, instruments, overlap, buy, bxy) %>%
   summarise( n=n(), z=mean(abs(b/se)),prop_sig = sum(pnorm(abs(b/se), lower.tail=FALSE) < 0.05) / n(), se=sd(b)/sqrt(n),b=mean(b))
 #ress2 <- ress # 0.4
 #ress3 <- ress # 
 #ress4 <- ress # 0
 
 # Plot beta
-p1 <- ggplot(ress, aes(x=overlap, y=b, fill=exposure_dataset)) +
+p1 <- ggplot(subset(ress, bxy==0), aes(x=overlap, y=b, fill=exposure_dataset)) +
 geom_bar(stat="identity", position="dodge", aes(fill=exposure_dataset)) +
 geom_errorbar(aes(ymin = b - se, ymax = b + se), width=0.1,position=position_dodge(0.9)) +
 facet_grid(instruments ~ buy) +
 scale_fill_brewer(type="qual") +
 geom_hline(yintercept=0, linetype="dotted") +
 theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5))
-ggsave(p1, file=paste0(imgdir,"/replication_beta.png"), width=10, height=10)
+ggsave(p1, file=paste0(imgdir,"/replication_beta_0.png"), width=10, height=10)
+
+p1 <- ggplot(subset(ress, bxy==0.2), aes(x=overlap, y=b, fill=exposure_dataset)) +
+geom_bar(stat="identity", position="dodge", aes(fill=exposure_dataset)) +
+geom_errorbar(aes(ymin = b - se, ymax = b + se), width=0.1,position=position_dodge(0.9)) +
+facet_grid(instruments ~ buy) +
+scale_fill_brewer(type="qual") +
+geom_hline(yintercept=0, linetype="dotted") +
+theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5))
+ggsave(p1, file=paste0(imgdir,"/replication_beta_0.2.png"), width=10, height=10)
 
 # Plot proportion of significant p vals
-p1 <- ggplot(ress, aes(x=overlap, y=prop_sig, fill=exposure_dataset)) +
+p1 <- ggplot(subset(ress, bxy==0), aes(x=overlap, y=prop_sig, fill=exposure_dataset)) +
 geom_bar(stat="identity", position="dodge", aes(fill=exposure_dataset)) +
 facet_grid(instruments ~ buy) +
 scale_fill_brewer(type="qual") +
 theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5))
-ggsave(p1, file=paste0(imgdir,"/replication_prop_sig.png"), width=10, height=10)
+ggsave(p1, file=paste0(imgdir,"/replication_prop_sig_0.png"), width=10, height=10)
+
+p1 <- ggplot(subset(ress, bxy==0.2), aes(x=overlap, y=prop_sig, fill=exposure_dataset)) +
+geom_bar(stat="identity", position="dodge", aes(fill=exposure_dataset)) +
+facet_grid(instruments ~ buy) +
+scale_fill_brewer(type="qual") +
+theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5))
+ggsave(p1, file=paste0(imgdir,"/replication_prop_sig_0.2.png"), width=10, height=10)
 ```
