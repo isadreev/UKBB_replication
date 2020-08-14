@@ -192,9 +192,13 @@ The following strategies were tested:
   3. Sample overlap with half discovery, half replication
   4. Completely independent sample
 
-![Simulations for different scenarios of SNP exposure and SNP outcome effect. Columns represent different confounder values. The corresponding scenarios of sample overlap are shown on the x axis, and the average estimate of the causal effect across 10000 simulations is shown on the y axis, where the causal effect simulated is 0 (black dotted line). Top row shows the results for all SNPs whereas the bottom row shows the results for the significant SNPs that pass the significance threshold of 5e-8.](../images/replication_beta.png)
+![Simulations for different scenarios of SNP exposure and SNP outcome effect. Columns represent different confounder values. The corresponding scenarios of sample overlap are shown on the x axis, and the average estimate of the causal effect across 10000 simulations is shown on the y axis, where the causal effect simulated is 0 (black dotted line). Top row shows the results for all SNPs whereas the bottom row shows the results for the significant SNPs that pass the significance threshold of 5e-8.](../images/replication_beta_0.png)
 
-![Simulations for different scenarios of SNP exposure and SNP outcome effect. Columns represent different confounder values. The corresponding scenarios of sample overlap are shown on the x axis, and the proportion of p values smaller than 0.05 is shown on the y axis. Top row shows the results for all SNPs whereas the bottom row shows the results for the significant SNPs that pass the significance threshold of 5e-8.](../images/replication_prop_sig.png)
+![Simulations for different scenarios of SNP exposure and SNP outcome effect. Columns represent different confounder values. The corresponding scenarios of sample overlap are shown on the x axis, and the proportion of p values smaller than 0.05 is shown on the y axis. Top row shows the results for all SNPs whereas the bottom row shows the results for the significant SNPs that pass the significance threshold of 5e-8.](../images/replication_prop_sig_0.png)
+
+![Simulations for different scenarios of SNP exposure and SNP outcome effect. Columns represent different confounder values. The corresponding scenarios of sample overlap are shown on the x axis, and the average estimate of the causal effect across 10000 simulations is shown on the y axis, where the causal effect simulated is 0.2 (black dotted line). Top row shows the results for all SNPs whereas the bottom row shows the results for the significant SNPs that pass the significance threshold of 5e-8.](../images/replication_beta_0.2.png)
+
+![Simulations for different scenarios of SNP exposure and SNP outcome effect. Columns represent different confounder values. The corresponding scenarios of sample overlap are shown on the x axis, and the proportion of p values smaller than 0.05 is shown on the y axis. Top row shows the results for all SNPs whereas the bottom row shows the results for the significant SNPs that pass the significance threshold of 5e-8.](../images/replication_prop_sig_0.2.png)
 
 Conclusions
 
