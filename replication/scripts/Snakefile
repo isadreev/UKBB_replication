@@ -33,6 +33,9 @@ with open(DATADIR + "/ukb-b-idlist.txt", 'w') as f:
   [f.writelines(x + '\n') for x in DATA]
 col = ["discovery", "replication"]
 
+# Select instruments: all weak or all
+instr=["weak","all"]
+
 
 rule all:
   input: 
@@ -193,19 +196,19 @@ rule mr_all:
   input:
     expand("{DATADIR}/MR_prep.RData", DATADIR=DATADIR)
   output:
-    "{RESULTSDIR}/{data}/MR_Het_All_vs_All.txt"
+    "{RESULTSDIR}/{data}/MR_Het_All_vs_All_{instr}.txt"
   shell:
-    "Rscript ../../mr/scripts/mr_All_vs_All.r {DATADIR} {RESULTSDIR} {VCFDIR} {wildcards.data}"
+    "Rscript ../../mr/scripts/mr_All_vs_All.r {DATADIR} {RESULTSDIR} {VCFDIR} {wildcards.data} {wildcards.instr}"
 
 
 # Combine the results
 rule combine_res:
   input:
-    expand("{RESULTSDIR}/{data}/MR_Het_All_vs_All.txt", RESULTSDIR = RESULTSDIR, data=DATA)
+    expand("{RESULTSDIR}/{data}/MR_Het_All_vs_All_{instr}.txt", RESULTSDIR = RESULTSDIR, data=DATA, instr=instr)
   output:
     "{DATADIR}/Regression_estimates.txt"
   shell:
-    "Rscript ../../mr/scripts/mr_combine_res.r {DATADIR} {RESULTSDIR} {SDDIR} {IMGDIR}"
+    "Rscript ../../mr/scripts/mr_combine_res.r {DATADIR} {RESULTSDIR} {SDDIR} {IMGDIR} {wildcards.instr}"
 
 
 

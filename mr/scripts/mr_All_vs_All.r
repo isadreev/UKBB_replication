@@ -16,7 +16,7 @@ datadir <- args[1]
 resultsdir <- args[2]
 vcfdir <- args[3]
 out <- args[4]
-
+instr <- args[5]
 
 # ======================== Functions ==============================
 
@@ -109,15 +109,33 @@ mr_analysis <- function(exp,d,r) {
       
       # Filtering SNPs for their presence in the phenotype and for p-val
       snp_exp <- as.character(subset(dat, id.exposure == exp)$SNP)
-      
+
+      ## Forward order      
+
       disc_gwas_f <- subset(disc_gwas,SNP %in% snp_exp & pval.exposure < 5e-8)
-      
+
+      # Next two commands used to distinguish between weak instruments and weak instruments with wc. 10 is a threshold for weak instruments
+
+      if (instr=="weak") {
+        snplist <- subset(repl_gwas, SNP %in% disc_gwas_f$SNP & pval.exposure >= pf(10, 1, 10000, low=F))$SNP
+        disc_gwas_f <- subset(disc_gwas_f, SNP %in% snplist)
+      }
+     
       repl_gwas_f <- subset(repl_gwas,SNP %in% disc_gwas_f$SNP)
 
       out_gwas_f <- subset(out_gwas,SNP %in% disc_gwas_f$SNP)
 
+      ## Reverse order
+
       repl_gwas_s <- subset(repl_gwas,SNP %in% snp_exp & pval.exposure < 5e-8)
+
+      # Next two commands used to distinguish between weak instruments and weak instruments with wc. 10 is a threshold for weak instruments
       
+      if (instr=="weak") {
+        snplist <- subset(disc_gwas, SNP %in% repl_gwas_s$SNP & pval.exposure >= pf(10, 1, 10000, low=F))$SNP
+        repl_gwas_s <- subset(repl_gwas_s, SNP %in% snplist)
+      }
+
       disc_gwas_s <- subset(disc_gwas,SNP %in% repl_gwas_s$SNP)
       
       out_gwas_s <- subset(out_gwas,SNP %in% repl_gwas_s$SNP)
@@ -404,12 +422,12 @@ for (exp in phen_all[,1])
 }
 
 # Save all results
-write.table(mr_out, file = paste(resultsdir,out,"MR_All_vs_All.txt",sep="/"), append = FALSE, quote = TRUE, sep = " ",
+write.table(mr_out, file = paste(resultsdir,"/",out,"/MR_All_vs_All_",instr,".txt",sep=""), append = FALSE, quote = TRUE, sep = " ",
             eol = "\n", na = "NA", dec = ".", row.names = FALSE,
             col.names = TRUE, qmethod = c("escape", "double"),
             fileEncoding = "")
 
-write.table(het_out, file = paste(resultsdir,out,"MR_Het_All_vs_All.txt",sep="/"), append = FALSE, quote = TRUE, sep = " ",
+write.table(het_out, file = paste(resultsdir,"/",out,"/MR_Het_All_vs_All_",instr,".txt",sep=""), append = FALSE, quote = TRUE, sep = " ",
             eol = "\n", na = "NA", dec = ".", row.names = FALSE,
             col.names = TRUE, qmethod = c("escape", "double"),
             fileEncoding = "")

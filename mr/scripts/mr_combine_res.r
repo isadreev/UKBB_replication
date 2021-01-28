@@ -10,6 +10,7 @@ datadir <- args[1]
 resultsdir <- args[2]
 sddir <- args[3]
 imgdir <- args[4]
+instr <- args[5]
 
 # Read all phenotype names and define each phenotype id
 phen_all <- read.table(paste(datadir,"/ukb-b-idlist.txt",sep=""))
@@ -25,8 +26,8 @@ stdevs <- fread(paste(sddir,"ukb-b-sd.csv",sep="/"), header=TRUE)
 for (id in phen_all[,1])
 {
 	# Reading the results for each trait
- 	mr_file <- paste0(resultsdir, "/", id, "/MR_All_vs_All.txt")
-  het_file <- paste0(resultsdir, "/", id, "/MR_Het_All_vs_All.txt")
+ 	mr_file <- paste0(resultsdir, "/", id, "/MR_All_vs_All_",instr,".txt")
+  het_file <- paste0(resultsdir, "/", id, "/MR_Het_All_vs_All_",instr,".txt")
 
   mr_table <- fread(mr_file, header=TRUE)
   het_table <- fread(het_file, header=TRUE)
@@ -58,12 +59,12 @@ for (id in phen_all[,1])
 out_mr <- as.data.frame(out_mr)
 out_het <- as.data.frame(out_het)
 
-write.table(out_mr, file = paste(datadir,"/MR_All_vs_All_combined.txt",sep=""), append = FALSE, quote = TRUE, sep = " ",
+write.table(out_mr, file = paste(datadir,"/MR_All_vs_All_combined_",instr,".txt",sep=""), append = FALSE, quote = TRUE, sep = " ",
             eol = "\n", na = "NA", dec = ".", row.names = FALSE,
             col.names = TRUE, qmethod = c("escape", "double"),
             fileEncoding = "")
 
-write.table(out_het, file = paste(datadir,"/MR_Het_All_vs_All_combined.txt",sep=""), append = FALSE, quote = TRUE, sep = " ",
+write.table(out_het, file = paste(datadir,"/MR_Het_All_vs_All_combined_",instr,".txt",sep=""), append = FALSE, quote = TRUE, sep = " ",
             eol = "\n", na = "NA", dec = ".", row.names = FALSE,
             col.names = TRUE, qmethod = c("escape", "double"),
             fileEncoding = "")
@@ -92,13 +93,13 @@ res_plot <- function(dr,dr_dt,dt,met) {
 
   m_met <- m_met[complete.cases(m_met),]
 
-  png(paste(imgdir,"/",dr,"_DR_vs_",dr_dt,"_",dt,"_",met,".png",sep=""))
+  png(paste(imgdir,"/",dr,"_DR_vs_",dr_dt,"_",dt,"_",met,"_",instr,".png",sep=""))
   plot(m_met$DR,m_met[,dt],main="Correlation BETA",xlab=paste(dr,"DR",sep="_"),ylab=paste(dr_dt,dt,sep="_"), xlim=c(min(m_met[,dt], m_met$DR), max(m_met[,dt], m_met$DR)),ylim=c(min(m_met[,dt], m_met$DR), max(m_met[,dt], m_met$DR)))
   abline(lm(m_met[,dt] ~ m_met$DR))
   abline(coef = c(0,1),col="red")
   dev.off()
 
-  png(paste(imgdir,"/Z_",dr,"_DR_vs_",dr_dt,"_",dt,"_",met,".png",sep=""))
+  png(paste(imgdir,"/Z_",dr,"_DR_vs_",dr_dt,"_",dt,"_",met,"_",instr,".png",sep=""))
   plot(m_met$z_DR, m_met[,paste("z",dt,sep="_")], main="Correlation Z",xlab=paste("z",dr,"DR",sep="_"),ylab=paste("z",dr_dt,dt,sep="_"),xlim=c(min(m_met[,paste("z",dt,sep="_")], m_met$z_DR), max(m_met[,paste("z",dt,sep="_")], m_met$z_DR)), ylim=c(min(m_met[,paste("z",dt,sep="_")], m_met$z_DR), max(m_met[,paste("z",dt,sep="_")], m_met$z_DR)))
   abline(lm(m_met[,paste("z",dt,sep="_")] ~ m_met$z_DR))
   abline(coef = c(0,1),col="red")
@@ -183,7 +184,7 @@ a <- rbind(a,res_plot("BA","AB","RD","Weighted mode"))
 a <- a[!a$Method=="MR Egger",]
 
 # Save all results
-write.table(a, file = paste(datadir,"/Regression_estimates.txt",sep=""), append = FALSE, quote = TRUE, sep = " ",
+write.table(a, file = paste(datadir,"/Regression_estimates_",instr,".txt",sep=""), append = FALSE, quote = TRUE, sep = " ",
             eol = "\n", na = "NA", dec = ".", row.names = FALSE,
             col.names = TRUE, qmethod = c("escape", "double"),
             fileEncoding = "")
