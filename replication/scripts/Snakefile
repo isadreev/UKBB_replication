@@ -42,7 +42,7 @@ rule all:
     #expand("{RESULTSDIR}/{data}/{col}.stats.txt.gz", RESULTSDIR = RESULTSDIR, col=col, data=DATA)
     #expand("{DATADIR}/count_tophits.txt", DATADIR=DATADIR),
     #expand("{RESULTSDIR}/{data}/MR_Het_All_vs_All.txt", RESULTSDIR = RESULTSDIR, data=DATA)
-    expand("{DATADIR}/Regression_estimates.txt", DATADIR = DATADIR)
+    expand("{DATADIR}/Regression_estimates_{instr}.txt", DATADIR = DATADIR, instr=instr)
 
 
 # Create a mapping of old ukb-b IDs to new
@@ -206,7 +206,7 @@ rule combine_res:
   input:
     expand("{RESULTSDIR}/{data}/MR_Het_All_vs_All_{instr}.txt", RESULTSDIR = RESULTSDIR, data=DATA, instr=instr)
   output:
-    "{DATADIR}/Regression_estimates.txt"
+    "{DATADIR}/Regression_estimates_{instr}.txt"
   shell:
     "Rscript ../../mr/scripts/mr_combine_res.r {DATADIR} {RESULTSDIR} {SDDIR} {IMGDIR} {wildcards.instr}"
 
