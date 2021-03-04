@@ -15,21 +15,40 @@ phen_all <- read.table(paste(datadir,"/ukb-b-idlist.txt",sep=""))
 phen_all <- phen_all %>% mutate(V1 = tolower(V1))
 
 # Without using the threshold for significance
-
-instrument_counts <- lapply(phen_all[,1], function(id) {
+instrument_counts <- mclapply(phen_all[,1], function(id) {
   tophits <- scan(file.path(igddir, id, "clump.txt"), what=character())
   
   discovery <- fread(file.path(resultsdir, id, "discovery.statsfile.txt.gz")) %>%
     subset(., SNP %in% tophits)
+  ind <- names(discovery) %in% c("SNP", "CHR", "BP", "GENPOS", "ALLELE1", "ALLELE0")
+  names(discovery)[!ind] <- paste0(names(discovery)[!ind], ".disc")
 
   replication <- fread(file.path(resultsdir, id, "replication.statsfile.txt.gz")) %>%
     subset(., SNP %in% tophits)
+  ind <- names(replication) %in% c("SNP", "CHR", "BP", "GENPOS", "ALLELE1", "ALLELE0")
+  names(replication)[!ind] <- paste0(names(replication)[!ind], ".repl")
 
-  dat <- inner_join(discovery, replication, by="SNP") %>% mutate(id=id)
+  dat <- inner_join(discovery, replication, by=c("SNP", "CHR", "BP", "GENPOS", "ALLELE1", "ALLELE0")) %>% 
+  	mutate(id=id) %>%
+  	dplyr::select(id, SNP, CHR, BP, GENPOS, ALLELE1, ALLELE0, everything())
 
   return(dat)
 
-}) %>% bind_rows()
+}, mc.cores=10) 
+
+
+instrument_counts <- lapply(instrument_counts, function(x)
+{
+	x$P_LINREG.disc <- as.numeric(x$P_LINREG.disc)
+	x$P_LINREG.repl <- as.numeric(x$P_LINREG.repl)
+	x$P_BOLT_LMM_INF.disc <- as.numeric(x$P_BOLT_LMM_INF.disc)
+	x$P_BOLT_LMM_INF.repl <- as.numeric(x$P_BOLT_LMM_INF.repl)
+	x$P_BOLT_LMM.disc <- as.numeric(x$P_BOLT_LMM.disc)
+	x$P_BOLT_LMM.repl <- as.numeric(x$P_BOLT_LMM.repl)
+	return(x)
+})
+
+instrument_counts <- bind_rows(instrument_counts)
 
 save(instrument_counts, file = paste(datadir,"/instrument_list.rdata",sep=""))
 
