@@ -1,5 +1,6 @@
 library(data.table)
 require(tidyverse)
+library(dplyr)
 
 args <- commandArgs(T)
 igddir <- args[1]
@@ -12,6 +13,28 @@ phen_all <- read.table(paste(datadir,"/ukb-b-idlist.txt",sep=""))
 
 # Replace all capital letters with lowercase
 phen_all <- phen_all %>% mutate(V1 = tolower(V1))
+
+# Without using the threshold for significance
+
+instrument_counts <- lapply(phen_all[,1], function(id) {
+  tophits <- scan(file.path(igddir, id, "clump.txt"), what=character())
+  
+  discovery <- fread(file.path(resultsdir, id, "discovery.statsfile.txt.gz")) %>%
+    subset(., SNP %in% tophits)
+
+  replication <- fread(file.path(resultsdir, id, "replication.statsfile.txt.gz")) %>%
+    subset(., SNP %in% tophits)
+
+  dat <- inner_join(discovery, replication, by="SNP") %>% mutate(id=id)
+
+  return(dat)
+
+}) %>% bind_rows()
+
+save(instrument_counts, file = paste(datadir,"/instrument_list.rdata",sep=""))
+
+
+# Using the threshold for significance
 
 out <- c()
 
@@ -58,7 +81,13 @@ for (id in phen_all[,1])
     rst <- NA
   }
   
-  temp <- data.frame(phen=id, total=nf, sign_disc=ds, sign_repl=rs, sign_disc_top=dst, sign_repl_top=rst)
+  if (!is.na(dst)&!is.na(rst)) {
+    weak <- dst-rst
+    } else {
+      weak <- NA
+    }
+
+  temp <- data.frame(phen=id, total=nf, sign_disc=ds, sign_repl=rs, sign_disc_top=dst, sign_repl_top=rst, weak_instr=weak)
   
   out <- rbind(out,temp)
   
