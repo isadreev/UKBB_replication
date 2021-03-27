@@ -10,6 +10,7 @@ suppressPackageStartupMessages(suppressWarnings({
 	library(ggplot2)
 	library(simulateGP)
 	library(knitr)
+	library(gridExtra)
 }))
 opts_chunk$set(cache=TRUE, echo=TRUE, message=FALSE, warning=FALSE)
 ```
@@ -38,7 +39,7 @@ param <- expand.grid(
 	maxmaf = 0.5,
 	S = 0,
 	threshold = 5e-8,
-	sim = 1:50
+	sim = 1:100
 )
 dim(param)
 ```
@@ -49,17 +50,23 @@ Simulations:
 ```{r}
 runsim <- function(p)
 {
-	paramx <- simulateGP::generate_gwas_params(runif(p$nsnp, p$minmaf, p$maxmaf), p$h2, p$S)
+	map <- tibble(snp=1:p$nsnp, af=runif(p$nsnp, p$minmaf, p$maxmaf))
+	paramx <- simulateGP::generate_gwas_params(map, p$h2, p$S)
 	paramy <- paramx
 	paramy$beta <- paramy$beta * p$bxy
 	ndisc <- round(p$nid * p$propA)
 	nrepl <- p$nid - ndisc
-	discx <- simulateGP::generate_gwas_ss(paramx$beta, paramx$maf, ndisc)
-	replx <- simulateGP::generate_gwas_ss(paramx$beta, paramx$maf, nrepl)
-	reply <- simulateGP::generate_gwas_ss(paramy$beta, paramy$maf, nrepl)
+	discx <- simulateGP::generate_gwas_ss(paramx, ndisc)
+	replx <- simulateGP::generate_gwas_ss(paramx, nrepl)
+	reply <- simulateGP::generate_gwas_ss(paramy, nrepl)
 	sigsnp <- discx$snp[discx$pval < p$threshold]
 
-	res <- TwoSampleMR::mr_ivw(replx$bhat[sigsnp], reply$bhat[sigsnp], replx$se[sigsnp], reply$se[sigsnp])
+	if(length(sigsnp) > 1 | length(sigsnp) == 0)
+	{
+		res <- TwoSampleMR::mr_ivw(replx$bhat[sigsnp], reply$bhat[sigsnp], replx$se[sigsnp], reply$se[sigsnp])
+	} else {
+		res <- TwoSampleMR::mr_wald_ratio(replx$bhat[sigsnp], reply$bhat[sigsnp], replx$se[sigsnp], reply$se[sigsnp])
+	}
 	p$nsig <- length(sigsnp)
 	p$ivw_b <- res$b
 	p$ivw_se <- res$se
@@ -94,9 +101,11 @@ save(l, lsum, file="summary_sims.rdata")
 Plot the test statistic for the MR result - higher Z value means higher power - against the proportion of samples in A:
 
 ```{r}
-ggplot(lsum, aes(y=z, x=propA, group=as.factor(nsnp * h2))) +
+p1 <- ggplot(lsum, aes(y=z, x=propA, group=as.factor(nsnp * h2))) +
 geom_point(aes(colour=as.factor(nsnp), shape=as.factor(h2))) +
-geom_line(aes(colour=as.factor(nsnp), linetype=as.factor(h2)))
+geom_line(aes(colour=as.factor(nsnp), linetype=as.factor(h2))) +
+labs(shape="Heritability", linetype="Heritability", colour="N causal variants", y="MR Z-score", x="Relative discovery sample size")
+p1
 ```
 
 Generally the power is maximised somewhere in the middle, but the point of maximisation does change with different architectures. In general, a 50/50 split seems fine.
@@ -104,9 +113,11 @@ Generally the power is maximised somewhere in the middle, but the point of maxim
 Is bias changing with different values of propA?
 
 ```{r}
-ggplot(lsum, aes(y=b, x=propA, group=as.factor(nsnp * h2))) +
+p2 <- ggplot(lsum %>% filter(h2 != 0.1), aes(y=b, x=propA, group=as.factor(nsnp * h2))) +
 geom_point(aes(colour=as.factor(nsnp), shape=as.factor(h2))) +
-geom_line(aes(colour=as.factor(nsnp), linetype=as.factor(h2)))
+geom_line(aes(colour=as.factor(nsnp), linetype=as.factor(h2))) +
+labs(shape="Heritability", linetype="Heritability", colour="N causal variants", y="MR effect estimate", x="Relative discovery sample size")
+p2
 ```
 
 Looks like weak instrument bias increases when the replication sample is smaller.
@@ -114,7 +125,28 @@ Looks like weak instrument bias increases when the replication sample is smaller
 How many instruments are being discovered?
 
 ```{r}
-ggplot(lsum, aes(y=nsig, x=propA, group=as.factor(nsnp * h2))) +
+p3 <- ggplot(lsum, aes(y=nsig, x=propA, group=as.factor(nsnp * h2))) +
 geom_point(aes(colour=as.factor(nsnp), shape=as.factor(h2))) +
-geom_line(aes(colour=as.factor(nsnp), linetype=as.factor(h2)))
+geom_line(aes(colour=as.factor(nsnp), linetype=as.factor(h2))) +
+labs(shape="Heritability", linetype="Heritability", colour="N causal variants", y="Number of discovery instruments", x="Relative discovery sample size")
+p3
+```
+
+```{r, fig.height=12, fig.width=8, dev="pdf"}
+
+g_legend<-function(a.gplot)
+{
+	tmp <- ggplot_gtable(ggplot_build(a.gplot))
+	leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+	legend <- tmp$grobs[[leg]]
+	return(legend)
+}
+mylegend <- g_legend(p1 + theme(legend.position="bottom"))
+p4 <- grid.arrange(
+	mylegend, arrangeGrob(p1 + theme(legend.position="none") + labs(x=""),
+                p2 + theme(legend.position="none") + labs(x=""),
+                p3 + theme(legend.position="none") + labs(x="Relative discovery sample size"),
+                nrow=3),
+	nrow=2, heights=c(1, 10)
+)
 ```
