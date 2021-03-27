@@ -51,7 +51,8 @@ instrument_counts <- lapply(instrument_counts, function(x)
 
 instrument_counts <- bind_rows(instrument_counts) %>% as_tibble()
 
-save(instrument_counts, file = paste(datadir,"/instrument_list.rdata",sep=""))
+dir.create("../results")
+save(instrument_counts, file = "../results/instrument_list.rdata")
 # save(instrument_counts, file="instrument_list.rdata")
 
 # Using the threshold for significance
@@ -113,7 +114,7 @@ for (id in phen_all[,1])
   
 } 
 
-write.table(out, file = paste(datadir,"/count_tophits.txt",sep=""), append = FALSE, quote = TRUE, sep = " ",
+write.table(out, file = "../results/count_tophits.txt", append = FALSE, quote = TRUE, sep = " ",
             eol = "\n", na = "NA", dec = ".", row.names = FALSE,
             col.names = TRUE, qmethod = c("escape", "double"),
             fileEncoding = "")
