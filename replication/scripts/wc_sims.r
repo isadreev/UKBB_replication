@@ -29,8 +29,9 @@ param <- expand.grid(
 str(param)
 
 l <- mclapply(1:nrow(param), function(i) {
-	runsim(param[i,])
-	}, mc.cores=16) %>%
+	message(i)
+	return(runsim(param[i,]))
+}, mc.cores=16) %>%
 	bind_rows()
 
 save(l, file="../results/wc_sim.rdata")
