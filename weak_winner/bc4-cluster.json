@@ -1,0 +1,19 @@
+{
+        "__default__" :
+        {
+                "name": "{rule}",
+                "partition": "mrcieu",
+                "nodes": "1",
+                "ncpu": "16",
+                "ntask": "1",
+                "time": "20:00:00",
+                "mem": "60G",
+                "output": "job_reports/{rule}.out"
+        },
+        "sim_data" :
+        {
+                "name": "{rule}.{wildcards.SIMS}",
+                "output": "job_reports/{rule}.{wildcards.SIMS}.out"
+        }
+}
+

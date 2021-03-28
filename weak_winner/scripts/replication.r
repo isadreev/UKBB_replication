@@ -1,53 +1,22 @@
----
-title: Exploring sample overlap simulations (replication)
----
+library(simulateGP)
+library(TwoSampleMR)
+library(dplyr)
+library(ggplot2)
+library(parallel)
+library(knitr)
+args <- commandArgs(T)
+datadir <- args[1]
 
-```{r}
-suppressWarnings(suppressPackageStartupMessages({
-  library(simulateGP)
-  library(TwoSampleMR)
-  library(dplyr)
-  library(ggplot2)
-  library(parallel)
-  library(knitr)
-  args <- commandArgs(T)
-  datadir <- args[1]
-}))
-opts_chunk$set(cache=TRUE, echo=TRUE, message=FALSE, warning=FALSE)
-```
 
 ## Outline of simulation
 
-1. Create x and y in a population
-2. Find instruments for x in discovery and test for significance
-3. Retest in replication
-4. Extract those effects from outcome GWAS, which could be independent, discovery or replication sample
+## 1. Create x and y in a population
+## 2. Find instruments for x in discovery and test for significance
+## 3. Retest in replication
+## 4. Extract those effects from outcome GWAS, which could be independent, discovery or replication sample
 
 
-
-### Find GWAS parameters which will likely give high winner's curse
-
-
-```{r}
-simulate_gwasx <- function(nid, nsnp, bgx, bux)
-{
-  g <- make_geno(nid, nsnp, 0.5)
-  u <- rnorm(nid)
-  geneff <- rep(bgx, nsnp)
-  x <- make_phen(c(geneff, bux), cbind(g, u))
-  gwas(x, g)
-}
-sapply(1:1000, function(x)
-{
-  simulate_gwasx(3000, 20, 0.08, 0.4) %>%
-    {sum(.$pval < 5e-8)}
-}) %>% table
-```
-
-
-### Check that UMVCUE works at reducing winner's curse
-
-```{r}
+### Run MR simulations for different sampling strategies
 umvcue <- function(d_beta, r_beta, d_se, r_se, pthresh)
 {
   t <- qnorm(1 - pthresh/2)
@@ -56,64 +25,7 @@ umvcue <- function(d_beta, r_beta, d_se, r_se, pthresh)
   b <- MLE - (r_se^2 / sqrt(r_se^2 + d_se^2) * dnorm(BB) / pnorm(BB))
   return(b)
 }
-simulate_umvcue <- function(nid, nsnp, bgx, bux)
-{
-  geneff <- rep(bgx, nsnp)
-  g <- make_geno(nid/2, nsnp, 0.5)
-  u <- rnorm(nid/2)
-  x <- make_phen(c(geneff, bux), cbind(g, u))
-  d <- gwas(x, g)
-  g <- make_geno(nid/2, nsnp, 0.5)
-  u <- rnorm(nid/2)
-  x <- make_phen(c(geneff, bux), cbind(g, u))
-  r <- gwas(x, g)
-  index <- d$pval < 5e-8
-  dat <- tibble(
-    truth = geneff,
-    disc = d$bhat,
-    rep = r$bhat,
-    disc_sig = d$pval < 5e-8,
-    what="all"
-  )
-  dat$umvcue <- NA
-  if(any(index))
-  {
-    dat$umvcue[index] <- umvcue(d$bhat[index], r$bhat[index], d$se[index], r$se[index], 5e-8)
-  }
-  return(dat)
-}
-out <- lapply(1:1000, function(x)
-{
-  simulate_umvcue(3000, 20, 0.13, 0.4) %>%
-    mutate(sim=x)
-}) %>% bind_rows()
-out2 <- group_by(out, sim) %>%
-  summarise(
-    nsig=sum(disc_sig), 
-    truth=mean(truth),
-    disc = mean(disc),
-    rep = mean(rep),
-    umvcue = mean(umvcue, na.rm=T)
-  )
-out3 <- filter(out, disc_sig) %>%
-  group_by(sim) %>%
-  summarise(
-    nsig=sum(disc_sig), 
-    truth=mean(truth),
-    disc = mean(disc),
-    rep = mean(rep),
-    umvcue = mean(umvcue, na.rm=T)
-  )
-colMeans(out2)
-colMeans(out3)
-```
 
-it does reduce winner's curse, gives simular result to replication
-
-
-### Run MR simulations for different sampling strategies
-
-```{r}
 gwas_bias <- function(gwas)
 {
   # sum((gwas$bhat - gwas$b)^2)
@@ -150,10 +62,10 @@ gwas_sim <- function(nid = 9000, nsnp = 20, bgx = 0.08, bxy = 0.2, buy = 0.4, bu
   bias$nsig <- sum(index)
   # Perform MR
   d <- list()
-  d$disc_all <- simulateGP::make_dat(disc_gwas, out_gwas)
-  d$rep_all <- simulateGP::make_dat(rep_gwas, out_gwas)
-  d$disc_sig <- simulateGP::make_dat(disc_gwas[index,], out_gwas[index,])
-  d$rep_sig <- simulateGP::make_dat(rep_gwas[index,], out_gwas[index,])
+  d$disc_all <- simulateGP::merge_exp_out(disc_gwas, out_gwas)
+  d$rep_all <- simulateGP::merge_exp_out(rep_gwas, out_gwas)
+  d$disc_sig <- simulateGP::merge_exp_out(disc_gwas[index,], out_gwas[index,])
+  d$rep_sig <- simulateGP::merge_exp_out(rep_gwas[index,], out_gwas[index,])
   d$umvcue_sig <- d$disc_sig
   d$umvcue_sig$beta.exposure <- umvcue(d$disc_sig$beta.exposure, d$rep_sig$beta.exposure, d$disc_sig$se.exposure, d$rep_sig$se.exposure, 5e-8)
   m <- lapply(names(d), function(x) {
@@ -169,6 +81,8 @@ gwas_sim <- function(nid = 9000, nsnp = 20, bgx = 0.08, bxy = 0.2, buy = 0.4, bu
   }) %>% bind_rows()
   return(list(bias=bias, mr=m))
 }
+
+
 res <- mclapply(1:1000, function(i) {
   message(i)
   bind_rows(
@@ -197,8 +111,7 @@ res <- mclapply(1:1000, function(i) {
     gwas_sim(bxy=0.2, out_index = 6001:9000, buy=0.4)$mr %>% mutate(overlap="no_overlap", bxy=0.2, buy=0.4),
     gwas_sim(bxy=0.2, out_index = 1501:4500, buy=0.4)$mr %>% mutate(overlap="both_overlap", bxy=0.2, buy=0.4)
   )
-}, mc.cores=10) %>% bind_rows()
+}, mc.cores=16) %>% bind_rows()
 
 save(res, file=file.path(datadir, "replication.rdata"))
-```
 
