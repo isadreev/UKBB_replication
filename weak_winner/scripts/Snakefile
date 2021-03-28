@@ -37,13 +37,28 @@ rule aggregate:
 
 # Do the replication simulations
 rule replication:
+  input:
+    "replication.rmd"
+  output:
+    expand("{RESULDSDIR}/replication.rdata", RESULDSDIR=RESULDSDIR),
+    "replication.html"
+  shell:
+    "Rscript -e \"rmarkdown::render('replication.rmd', output_format='all')\""
+
+
+rule replication_report:
+  input:
+    "replication_report.rmd",
+    expand("{RESULDSDIR}/replication.rdata", RESULDSDIR=RESULDSDIR)
   output:
     "{IMGDIR}/replication_beta_0.png",
     "{IMGDIR}/replication_prop_sig_0.png",
     "{IMGDIR}/replication_beta_0.2.png",
-    "{IMGDIR}/replication_prop_sig_0.2.png"
+    "{IMGDIR}/replication_prop_sig_0.2.png",
+    "replication_report.html"
   shell:
-    "Rscript -e \"rmarkdown::render('replication.rmd', output_format='all')\" {IMGDIR}"
+    "Rscript -e \"rmarkdown::render('replication_report.rmd', output_format='all')\" {IMGDIR}"
+
 
 # Collapse all the results into one file
 rule collapse:
