@@ -2,15 +2,9 @@ import os
 import json
 
 # Setup directories
-with open("config.json", "r") as f:
-  config = json.load(f)
-DATADIR = config["datadir"]
-os.makedirs(DATADIR, exist_ok=True)
-os.makedirs(os.path.join(DATADIR,"sim_data"), exist_ok=True)
-RESULTSDIR = config["resultsdir"]
-os.makedirs(RESULTSDIR, exist_ok=True)
-IMGDIR = config["imgdir"]
-os.makedirs(IMGDIR, exist_ok=True)
+os.makedirs("data", exist_ok=True)
+os.makedirs(os.path.join("data", "sim_data"), exist_ok=True)
+os.makedirs("results", exist_ok=True)
 os.makedirs('job_reports', exist_ok=True)
 
 rule all:
@@ -19,23 +13,23 @@ rule all:
     "docs/umvcue.html",
     "docs/replication_report.html"
 
-SIMS=list(range(1,12))
+SIMS=list(range(1,1213))
 chunk_size=20000
 # Create simulated data
 rule sim_data:
   output:
-    "{DATADIR}/sim_data/out{SIMS}.rdata"
+    "data/sim_data/out{SIMS}.rdata"
   shell:
-    "Rscript scripts/sim_overlap.r {chunk_size} {wildcards.SIMS} {DATADIR}"
+    "Rscript scripts/sim_overlap.r {chunk_size} {wildcards.SIMS} data"
 
 # Aggregate the results
 rule aggregate:
   input:
-    expand("{DATADIR}/sim_data/out{SIMS}.rdata", DATADIR = DATADIR, SIMS = SIMS)
+    expand("data/sim_data/out{SIMS}.rdata", SIMS = SIMS)
   output:
-    "{DATADIR}/sim_overlap_nr.rdata"
+    "data/sim_overlap_nr.rdata"
   shell:
-    "Rscript scripts/sim_aggregate.r {DATADIR}"
+    "Rscript scripts/sim_aggregate.r data"
 
 
 # Do the replication simulations
@@ -49,34 +43,26 @@ rule umvcue:
 
 rule replication:
   output:
-    expand("{RESULTSDIR}/replication.rdata", RESULTSDIR=RESULTSDIR),
+    "results/replication.rdata",
   shell:
-    "Rscript scripts/replication.r {RESULTSDIR}"
+    "Rscript scripts/replication.r results"
 
 rule replication_report:
   input:
     "docs/replication_report.rmd",
-    expand("{RESULTSDIR}/replication.rdata", RESULTSDIR=RESULTSDIR)
+    "results/replication.rdata"
   output:
-    expand("{IMGDIR}/replication_beta_0.png", IMGDIR=IMGDIR),
-    expand("{IMGDIR}/replication_prop_sig_0.png", IMGDIR=IMGDIR),
-    expand("{IMGDIR}/replication_beta_0.2.png", IMGDIR=IMGDIR),
-    expand("{IMGDIR}/replication_prop_sig_0.2.png", IMGDIR=IMGDIR),
     "docs/replication_report.html"
   shell:
-    "cd docs; Rscript -e \"rmarkdown::render('replication_report.rmd', output_format='all')\" {IMGDIR} {RESULTSDIR}"
+    "cd docs; Rscript -e \"rmarkdown::render('replication_report.rmd', output_format='all')\" ../results"
 
 
 # Collapse all the results into one file
 rule collapse:
   input:
     "docs/simulations.rmd",
-    expand("{DATADIR}/sim_overlap_nr.rdata", DATADIR = DATADIR),
-    expand("{IMGDIR}/replication_beta_0.png", IMGDIR = IMGDIR),
-    expand("{IMGDIR}/replication_prop_sig_0.png", IMGDIR = IMGDIR),
-    expand("{IMGDIR}/replication_beta_0.2.png", IMGDIR = IMGDIR),
-    expand("{IMGDIR}/replication_prop_sig_0.2.png", IMGDIR = IMGDIR)
+    "data/sim_overlap_nr.rdata",
   output:
     "docs/simulations.html"
   shell:
-    "cd docs; Rscript -e \"rmarkdown::render('simulations.rmd', output_format='all')\" {DATADIR}"
+    "cd docs; Rscript -e \"rmarkdown::render('simulations.rmd', output_format='all')\" ../data"

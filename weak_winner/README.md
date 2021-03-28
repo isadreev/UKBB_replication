@@ -3,22 +3,6 @@
 1. Without replication
 2. With replication
 
-## Setup
-
-Create a `config.json` file with relevant paths:
-
-```json
-{
-    "datadir": "",
-    "resultsdir": "",
-    "imgdir": "",
-}
-```
-
-* `datadir` = where to store generated data
-* `resultsdir` = where to store generated results
-* `imgdir` = where to store generated figures
-
 ## To run everything on bc4
 
 Use Snakemake to orchestrate the analysis. This will submit the jobs to slurm. 

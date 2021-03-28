@@ -11,10 +11,10 @@ suppressWarnings(suppressPackageStartupMessages({
   library(ggplot2)
   library(parallel)
   library(knitr)
-  args <- commandArgs(T)
-  imgdir <- args[1]
-  datadir <- args[2]
 }))
+args <- commandArgs(T)
+imgdir <- args[1]
+datadir <- args[2]
 opts_chunk$set(cache=TRUE, echo=TRUE, message=FALSE, warning=FALSE)
 load(file.path(datadir, "replication.rdata"))
 ```
@@ -27,8 +27,10 @@ ress <- filter(res) %>%
   tidyr::separate(what, into=c("exposure_dataset", "instruments"), "_") %>%
   group_by(exposure_dataset, instruments, overlap, buy, bxy) %>%
   summarise( n=n(), z=mean(abs(b/se)),prop_sig = sum(pnorm(abs(b/se), lower.tail=FALSE) < 0.05) / n(), se=sd(b)/sqrt(n),b=mean(b))
+```
 
 
+```{r}
 # Plot beta
 p1 <- ggplot(subset(ress, bxy==0), aes(x=overlap, y=b, fill=exposure_dataset)) +
 geom_bar(stat="identity", position="dodge", aes(fill=exposure_dataset)) +
@@ -37,8 +39,10 @@ facet_grid(instruments ~ buy) +
 scale_fill_brewer(type="qual") +
 geom_hline(yintercept=0, linetype="dotted") +
 theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5))
-ggsave(p1, file=paste0(imgdir,"/replication_beta_0.png"), width=10, height=10)
+p1
+```
 
+```{r}
 p1 <- ggplot(subset(ress, bxy==0.2), aes(x=overlap, y=b, fill=exposure_dataset)) +
 geom_bar(stat="identity", position="dodge", aes(fill=exposure_dataset)) +
 geom_errorbar(aes(ymin = b - se, ymax = b + se), width=0.1,position=position_dodge(0.9)) +
@@ -46,20 +50,26 @@ facet_grid(instruments ~ buy) +
 scale_fill_brewer(type="qual") +
 geom_hline(yintercept=0.2, linetype="dotted") +
 theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5))
-ggsave(p1, file=paste0(imgdir,"/replication_beta_0.2.png"), width=10, height=10)
+p1
+```
+
 
 # Plot proportion of significant p vals
+
+```{r}
 p1 <- ggplot(subset(ress, bxy==0), aes(x=overlap, y=prop_sig, fill=exposure_dataset)) +
 geom_bar(stat="identity", position="dodge", aes(fill=exposure_dataset)) +
 facet_grid(instruments ~ buy) +
 scale_fill_brewer(type="qual") +
 theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5))
-ggsave(p1, file=paste0(imgdir,"/replication_prop_sig_0.png"), width=10, height=10)
+p1
+```
 
+```{r}
 p1 <- ggplot(subset(ress, bxy==0.2), aes(x=overlap, y=prop_sig, fill=exposure_dataset)) +
 geom_bar(stat="identity", position="dodge", aes(fill=exposure_dataset)) +
 facet_grid(instruments ~ buy) +
 scale_fill_brewer(type="qual") +
 theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5))
-ggsave(p1, file=paste0(imgdir,"/replication_prop_sig_0.2.png"), width=10, height=10)
+p1
 ```
