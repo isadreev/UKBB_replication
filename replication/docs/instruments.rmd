@@ -1,0 +1,291 @@
+---
+title: How much winner's curse expected as sample sizes increase?
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+---
+
+```{r}
+suppressPackageStartupMessages(suppressWarnings({
+	library(simulateGP)
+	library(tidyverse)
+  library(data.table)
+  library(knitr)
+}))
+opts_chunk$set(cache=TRUE, echo=TRUE, message=FALSE, warning=FALSE)
+```
+
+Simulation function
+
+```{r}
+runsim <- function(p)
+{
+	map <- tibble(snp=1:p$nsnp, af=runif(p$nsnp, 0.01, 0.99))
+	gp <- generate_gwas_params(map, h2=p$h2, S = p$S) %>%
+		mutate(
+			rsq=2 * beta^2 * af * (1-af)
+		)
+	ss <- generate_gwas_ss(gp, nid=p$nid) %>%
+		mutate(tfval = (gp$beta/se)^2)
+	p$nsig <- sum(ss$pval < p$pval)
+	p$nsig_weak <- sum(ss$pval < p$pval & ss$tfval < 20)
+	p$nsig_overestimate <- sum(ss$pval < p$pval & (abs(ss$bhat) - 1.96 * ss$se) > abs(gp$beta))
+	p$min_rsq <- subset(ss, pval < p$pval) %>% {min(.$rsq)}
+	return(p)
+}
+```
+
+Setup parameters
+
+```{r}
+param <- expand.grid(
+	nid=seq(10000, 250000, by=10000),
+	nsnp=c(500, 1000, 5000, 10000, 50000, 100000),
+	h2=c(0.1, 0.5, 0.9),
+	pval=5e-8,
+	S=c(-1, 0, 1),
+	rep=1:10
+) %>% as_tibble()
+str(param)
+```
+
+Run simulations
+
+```{r}
+l <- list()
+for(i in 1:nrow(param))
+{
+	l[[i]] <- runsim(param[i,])
+}
+l <- bind_rows(l)
+```
+
+What fraction of discovered SNPs will be significantly overestimated for a given minimum rsq value?
+
+```{r}
+ggplot(l, aes(x=nid, y=nsig_overestimate / nsig)) +
+geom_point(aes(colour=as.factor(nsnp))) +
+geom_smooth(aes(colour=as.factor(nsnp))) +
+scale_x_log10() +
+  ylim(c(0,1)) +
+scale_colour_brewer(type="qual") +
+facet_grid(h2 ~ .)
+```
+
+And what fraction will be weak?
+
+```{r}
+ggplot(l, aes(x=nid, y=nsig_weak / nsig)) +
+geom_point(aes(colour=as.factor(nsnp)), size=0.4) +
+geom_smooth(aes(colour=as.factor(nsnp))) +
+scale_x_log10() +
+scale_colour_brewer(type="qual") +
+facet_grid(h2 ~ S)
+```
+
+Relationship between overestimates and weak? As power gets better more of the overestimates are still strong
+
+```{r}
+ggplot(l, aes(x=nsig_overestimate, y=nsig_weak)) +
+geom_point(aes(colour=as.factor(nsnp))) +
+geom_smooth(aes(colour=as.factor(nsnp))) +
+scale_x_log10() +
+scale_colour_brewer(type="qual") +
+facet_grid(h2 ~ S)
+```
+
+How many just overestimated
+
+```{r}
+ggplot(l, aes(x=nid, y=nsig_overestimate)) +
+geom_point(aes(colour=as.factor(nsnp))) +
+geom_smooth(aes(colour=as.factor(nsnp))) +
+scale_x_log10() +
+scale_colour_brewer(type="qual") +
+facet_grid(h2 ~ S)
+```
+
+```{r}
+ggplot(l, aes(x=nid, y=nsig_overestimate/nsig)) +
+geom_point(aes(colour=as.factor(nsnp))) +
+geom_smooth(aes(colour=as.factor(nsnp))) +
+scale_x_log10() +
+scale_colour_brewer(type="qual") +
+facet_grid(h2 ~ S)
+```
+
+
+```{r}
+ggplot(l, aes(x=nid, y=min_rsq)) +
+geom_point(aes(colour=as.factor(nsnp))) +
+geom_smooth(aes(colour=as.factor(nsnp))) +
+scale_colour_brewer(type="qual") +
+facet_grid(h2 ~ S)
+```
+
+
+```{r}
+ggplot(l, aes(x=nid, y=nsig)) +
+geom_point(aes(colour=as.factor(nsnp))) +
+geom_smooth(aes(colour=as.factor(nsnp))) +
+scale_colour_brewer(type="qual") +
+facet_grid(h2 ~ S)
+```
+
+
+```{r}
+ggplot(l, aes(x=nsig, y=nsig_overestimate/nsig)) +
+geom_point(aes(colour=as.factor(nsnp))) +
+geom_smooth(aes(colour=as.factor(nsnp))) +
+scale_colour_brewer(type="qual") +
+facet_grid(h2 ~ S)
+
+```
+
+
+
+---
+
+## Sample split GWAS
+
+```{r}
+
+load("../results/instrument_list.rdata")
+counts <- fread("../results/count_tophits.txt")
+instrument_counts <- subset(instrument_counts, !is.na(BETA.disc))
+weak_p <- pf(10, 1, 100000, low=FALSE)
+```
+
+
+Quick summary
+
+```{r}
+s1 <- instrument_counts %>%
+	group_by(id) %>%
+	summarise(
+		ndisc=sum(P_BOLT_LMM_INF.disc < 5e-8),
+		nrepl=sum(P_BOLT_LMM_INF.repl < 5e-8),
+		nhalf=mean(c(ndisc, nrepl)),
+		ntot=sum(P_BOLT_LMM_INF.disc < 5e-8 | P_BOLT_LMM_INF.repl < 5e-8),
+		ndisc_weak=sum(P_BOLT_LMM_INF.disc < 5e-8 & P_BOLT_LMM_INF.repl > weak_p),
+		nrepl_weak=sum(P_BOLT_LMM_INF.repl < 5e-8 & P_BOLT_LMM_INF.disc > weak_p),
+		ndisc_overestimated=sum(P_BOLT_LMM_INF.disc < 5e-8 & (abs(BETA.disc) - 1.96 * SE.disc) > abs(BETA.repl)),
+		nrepl_overestimated=sum(P_BOLT_LMM_INF.repl < 5e-8 & (abs(BETA.repl) - 1.96 * SE.repl) > abs(BETA.disc)),
+    nhalf_overestimated=mean(c(ndisc_overestimated, nrepl_overestimated)),
+		ndisc_underestimated=sum(P_BOLT_LMM_INF.disc < 5e-8 & (abs(BETA.disc) + 1.96 * SE.disc) < abs(BETA.repl)),
+		nrepl_underestimated=sum(P_BOLT_LMM_INF.repl < 5e-8 & (abs(BETA.repl) + 1.96 * SE.repl) < abs(BETA.disc)),
+    nhalf_underestimated=mean(c(ndisc_underestimated, nrepl_underestimated)),
+		nhalf_weak=mean(c(ndisc_weak, nrepl_weak))
+	)
+```
+
+Number of traits with an instrument
+
+```{r}
+sum(s1$nhalf > 0)
+```
+
+Total number of instruments
+
+```{r}
+sum(s1$nhalf)
+sum(s1$ndisc)
+sum(s1$nrepl)
+sum(s1$ntot)
+```
+
+how many instruments per trait
+
+```{r}
+summary(s1$ndisc)
+summary(s1$nrepl)
+summary(s1$ndisc[s1$ndisc != 0])
+summary(s1$nrepl[s1$nrepl != 0])
+```
+
+Number of weak instruments
+
+```{r}
+sum(s1$nhalf_weak)
+sum(s1$ndisc_weak)
+sum(s1$nrepl_weak)
+```
+
+
+Number of overestimated instruments
+
+```{r}
+sum(s1$nhalf_overestimated)
+sum(s1$ndisc_overestimated)
+sum(s1$nrepl_overestimated)
+```
+Overestimated instruments
+
+
+```{r}
+summary(s1$nhalf_overestimated[s1$nhalf != 0])
+summary(s1$ndisc_overestimated[s1$ndisc != 0])
+summary(s1$nrepl_overestimated[s1$nrepl != 0])
+```
+
+```{r}
+summary(s1$nhalf_overestimated/s1$nhalf)
+summary(s1$ndisc_overestimated/s1$ndisc)
+summary(s1$nrepl_overestimated/s1$nrepl)
+```
+
+```{r}
+hist(s1$nhalf_overestimated / s1$nhalf, breaks=100)
+```
+
+```{r}
+hist(s1$nhalf_weak / s1$nhalf, breaks=100)
+```
+
+
+
+```{r}
+ggplot(s1, aes(x=ndisc, y=ndisc_overestimated / ndisc)) +
+  geom_point()
+```
+
+```{r}
+ggplot(s1, aes(x=ndisc, y=ndisc_weak / ndisc)) +
+  geom_point()
+```
+
+```{r}
+p1 <- bind_rows(
+  l %>% dplyr::select(nsig=nsig, nsnp=nsnp, nsig_overestimate) %>% mutate(what="Simulations"),
+  s1 %>% dplyr::select(nsig=ndisc, nsig_overestimate=ndisc_overestimated) %>% mutate(what="UK Biobank")
+) %>%
+  {
+ggplot(., aes(x=nsig, y=nsig_overestimate/nsig)) +
+  geom_point(data=subset(., what !="UK Biobank"), aes(colour=as.factor(nsnp)), size=0.1, alpha=0.5) +
+  geom_smooth(data=subset(., what !="UK Biobank"), aes(colour=as.factor(nsnp)), se=FALSE) +
+  geom_point(data=subset(., what =="UK Biobank")) +
+  scale_colour_brewer(type="seq", palette=2) +
+  # scale_x_log10() +
+      xlim(c(0,500)) +
+  labs(x="Discovered associations", y="Proportion overestimated", colour="Number of causal variants", shape="")
+    
+  }
+p1
+```
+
+
+```{r}
+s1 %>% 
+  mutate(propover=ndisc_overestimated/ndisc, propweak=ndisc_weak/ndisc) %>%
+  dplyr::select(id, propover, propweak) %>%
+  pivot_longer(cols=c(propover, propweak)) %>%
+  ggplot(., aes(x=value)) +
+  geom_histogram(aes(fill=name), position="dodge", bins=100)
+  # geom_density(aes(fill=name), alpha=0.2)
+```
+
+
+```{r}
+ggplot(s1, aes(x=ndisc_overestimated/ndisc)) +
+  geom_histogram(bins=100)
+
+```
+

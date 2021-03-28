@@ -176,7 +176,7 @@ rule top_hits:
   input:
     expand("{RESULTSDIR}/{data}/{col}.stats.txt.gz", RESULTSDIR = RESULTSDIR, col=col, data=DATA)
   output:
-    "{DATADIR}/count_tophits.txt"
+    "../results/instrument_list.rdata"
   shell:
     "Rscript count_tophits.r {IGDDIR} {DATADIR} {RESULTSDIR}"
 
@@ -213,3 +213,23 @@ rule combine_res:
   shell:
     "Rscript ../../mr/scripts/mr_combine_res.r {DATADIR} {RESULTSDIR} {SDDIR} {IMGDIR} {wildcards.instr}"
 
+
+
+rule wc_sims:
+  output:
+    "../results/wc_sims.rdata"
+  shell:
+    "Rscript wc_sims.r"
+
+
+rule instrument_report:
+  input:
+    "../results/instrument_list.rdata",
+    "../results/wc_sims.rdata"
+  output:
+    "../docs/instruments.html"
+  shell:
+    """
+    cd ../docs
+    Rscript -e "rmarkdown::render('instruments.rmd')"
+    """
