@@ -5,57 +5,13 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 
 ```{r}
 suppressPackageStartupMessages(suppressWarnings({
-	library(simulateGP)
 	library(tidyverse)
   library(data.table)
   library(knitr)
+  library(gridExtra)
 }))
 opts_chunk$set(cache=TRUE, echo=TRUE, message=FALSE, warning=FALSE)
-```
-
-Simulation function
-
-```{r}
-runsim <- function(p)
-{
-	map <- tibble(snp=1:p$nsnp, af=runif(p$nsnp, 0.01, 0.99))
-	gp <- generate_gwas_params(map, h2=p$h2, S = p$S) %>%
-		mutate(
-			rsq=2 * beta^2 * af * (1-af)
-		)
-	ss <- generate_gwas_ss(gp, nid=p$nid) %>%
-		mutate(tfval = (gp$beta/se)^2)
-	p$nsig <- sum(ss$pval < p$pval)
-	p$nsig_weak <- sum(ss$pval < p$pval & ss$tfval < 20)
-	p$nsig_overestimate <- sum(ss$pval < p$pval & (abs(ss$bhat) - 1.96 * ss$se) > abs(gp$beta))
-	p$min_rsq <- subset(ss, pval < p$pval) %>% {min(.$rsq)}
-	return(p)
-}
-```
-
-Setup parameters
-
-```{r}
-param <- expand.grid(
-	nid=seq(10000, 250000, by=10000),
-	nsnp=c(500, 1000, 5000, 10000, 50000, 100000),
-	h2=c(0.1, 0.5, 0.9),
-	pval=5e-8,
-	S=c(-1, 0, 1),
-	rep=1:10
-) %>% as_tibble()
-str(param)
-```
-
-Run simulations
-
-```{r}
-l <- list()
-for(i in 1:nrow(param))
-{
-	l[[i]] <- runsim(param[i,])
-}
-l <- bind_rows(l)
+load("../results/wc_sims.rdata")
 ```
 
 What fraction of discovered SNPs will be significantly overestimated for a given minimum rsq value?
@@ -73,12 +29,18 @@ facet_grid(h2 ~ .)
 And what fraction will be weak?
 
 ```{r}
-ggplot(l, aes(x=nid, y=nsig_weak / nsig)) +
-geom_point(aes(colour=as.factor(nsnp)), size=0.4) +
-geom_smooth(aes(colour=as.factor(nsnp))) +
-scale_x_log10() +
-scale_colour_brewer(type="qual") +
-facet_grid(h2 ~ S)
+p0 <- l %>%
+  mutate(h2 = paste0("h2 = ", h2), S=paste0("S = ", S)) %>%
+ggplot(., aes(x=nid, y=nsig_overestimate / nsig)) +
+  geom_point(aes(colour=as.factor(nsnp)), size=0.4) +
+  geom_smooth(aes(colour=as.factor(nsnp)), se=FALSE) +
+  scale_colour_brewer(type="seq", palette=2) +
+  facet_grid(h2 ~ S) +
+  ylim(c(0,1)) +
+  labs(x="Sample size", y="Proportion of discovered effects overestimated", colour="Number of causal variants") +
+  theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5), legend.position="bottom")
+p0
+
 ```
 
 Relationship between overestimates and weak? As power gets better more of the overestimates are still strong
@@ -289,3 +251,23 @@ ggplot(s1, aes(x=ndisc_overestimated/ndisc)) +
 
 ```
 
+## Figure
+
+```{r, fig.height=8, fig.width=6, dev="pdf"}
+g_legend<-function(a.gplot)
+{
+	tmp <- ggplot_gtable(ggplot_build(a.gplot))
+	leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+	legend <- tmp$grobs[[leg]]
+	return(legend)
+}
+mylegend <- g_legend(p0 + theme(legend.position="bottom"))
+p4 <- grid.arrange(
+	mylegend, arrangeGrob(p0 + theme(legend.position="none") + labs(title="A"),
+                p1 + theme(legend.position="none") + labs(title="B", y=""),
+                nrow=2),
+	nrow=2, heights=c(1, 10)
+)
+
+
+```

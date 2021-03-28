@@ -34,4 +34,4 @@ l <- mclapply(1:nrow(param), function(i) {
 }, mc.cores=16) %>%
 	bind_rows()
 
-save(l, file="../results/wc_sim.rdata")
+save(l, file="../results/wc_sims.rdata")
