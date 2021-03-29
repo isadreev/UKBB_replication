@@ -143,9 +143,9 @@ g_legend<-function(a.gplot)
 }
 mylegend <- g_legend(p1 + theme(legend.position="bottom"))
 p4 <- grid.arrange(
-	mylegend, arrangeGrob(p1 + theme(legend.position="none") + labs(x=""),
-                p2 + theme(legend.position="none") + labs(x=""),
-                p3 + theme(legend.position="none") + labs(x="Relative discovery sample size"),
+	mylegend, arrangeGrob(p1 + theme(legend.position="none") + labs(x="", title="A"),
+                p2 + theme(legend.position="none") + labs(x="", title="B"),
+                p3 + theme(legend.position="none") + labs(x="Relative discovery sample size", title="C"),
                 nrow=3),
 	nrow=2, heights=c(1, 10)
 )
