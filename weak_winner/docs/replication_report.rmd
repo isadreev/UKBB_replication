@@ -1,6 +1,8 @@
 ---
 title: "Analysis of replication simulations"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r}
@@ -11,12 +13,13 @@ suppressWarnings(suppressPackageStartupMessages({
   library(ggplot2)
   library(parallel)
   library(knitr)
+  library(pROC)
 }))
 args <- commandArgs(T)
 imgdir <- args[1]
 datadir <- args[2]
 opts_chunk$set(cache=TRUE, echo=TRUE, message=FALSE, warning=FALSE)
-load(file.path(datadir, "replication.rdata"))
+load(file.path("../results/replication.rdata"))
 ```
 
 
@@ -73,3 +76,23 @@ scale_fill_brewer(type="qual") +
 theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5))
 p1
 ```
+
+## AUROC
+
+```{r}
+ress2 <- filter(res) %>%
+  tidyr::separate(what, into=c("exposure_dataset", "instruments"), "_") %>%
+  group_by(exposure_dataset, instruments, overlap, buy) %>%
+  summarise(
+    auroc = roc(bxy, pval)$auc %>% as.numeric(),
+    fdr = sum(pval < 0.05 & bxy == 0) / sum(bxy == 0),
+    power = sum(pval < 0.05 & bxy != 0) / sum(bxy != 0)
+  )
+
+ggplot(ress2 %>% subset(instruments == "sig"), aes(x=fdr, y=power)) +
+geom_point(aes(colour=overlap, shape=exposure_dataset)) +
+facet_grid(. ~ buy) +
+scale_colour_brewer(type="qual") +
+labs(x="False discovery rate (α=0.05)", y="Power (p < 0.05)", shape="Exposure dataset", colour="Outcome dataset")
+```
+
