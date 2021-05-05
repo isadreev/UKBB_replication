@@ -4,6 +4,7 @@ library(dplyr)
 library(ggplot2)
 library(parallel)
 library(knitr)
+library(meta) 
 args <- commandArgs(T)
 datadir <- args[1]
 
@@ -32,6 +33,9 @@ gwas_bias <- function(gwas)
   mean(abs(gwas$bhat - gwas$b))
 }
 gwas_sim <- function(nid = 9000, nsnp = 20, bgx = 0.08, bxy = 0.2, buy = 0.4, bux = 0.4, out_index = 1:3000)
+#out_index <- 1:3000; disc_index <- 3001:6000; rep_index <- 1:3000
+
+
 {
   # Simulate population
   g <- make_geno(nid, nsnp, 0.5)
@@ -44,21 +48,28 @@ gwas_sim <- function(nid = 9000, nsnp = 20, bgx = 0.08, bxy = 0.2, buy = 0.4, bu
   # GWAS in samples
   disc_index <- 1:3000
   rep_index <- 3001:6000
+  out_rev_index <- 1:3000
   disc_gwas <- gwas(x[disc_index], g[disc_index,])
   rep_gwas <- gwas(x[rep_index], g[rep_index,])
   out_gwas <- gwas(y[out_index], g[out_index,])
+  out_rev_gwas <- gwas(y[out_rev_index], g[out_rev_index,])
   disc_gwas$b <- geneff
   rep_gwas$b <- geneff
   out_gwas$b <- geneff * bxy
-  bias <- expand.grid(sample=c("disc", "rep", "out"), what=c("all", "sig"), bias=NA)
+  out_rev_gwas$b <- geneff * bxy
+  bias <- expand.grid(sample=c("disc", "rep", "out"), what=c("all", "sig", "rev"), bias=NA)
   bias$sse[1] <- gwas_bias(disc_gwas)
   bias$sse[2] <- gwas_bias(rep_gwas)
   bias$sse[3] <- gwas_bias(out_gwas)
   # what is significant
   index <- disc_gwas$pval < 5e-8
+  index2 <- rep_gwas$pval < 5e-8
   bias$sse[4] <- gwas_bias(disc_gwas[index,])
   bias$sse[5] <- gwas_bias(rep_gwas[index,])
   bias$sse[6] <- gwas_bias(out_gwas[index,])
+  bias$sse[7] <- gwas_bias(rep_gwas[index2,])
+  bias$sse[8] <- gwas_bias(disc_gwas[index2,])
+  bias$sse[9] <- gwas_bias(out_rev_gwas[index2,])
   bias$nsig <- sum(index)
   # Perform MR
   d <- list()
@@ -66,6 +77,7 @@ gwas_sim <- function(nid = 9000, nsnp = 20, bgx = 0.08, bxy = 0.2, buy = 0.4, bu
   d$rep_all <- simulateGP::merge_exp_out(rep_gwas, out_gwas)
   d$disc_sig <- simulateGP::merge_exp_out(disc_gwas[index,], out_gwas[index,])
   d$rep_sig <- simulateGP::merge_exp_out(rep_gwas[index,], out_gwas[index,])
+  d$rep_meta <- simulateGP::merge_exp_out(disc_gwas[index2,], out_rev_gwas[index2,])
   d$umvcue_sig <- d$disc_sig
   d$umvcue_sig$beta.exposure <- umvcue(d$disc_sig$beta.exposure, d$rep_sig$beta.exposure, d$disc_sig$se.exposure, d$rep_sig$se.exposure, 5e-8)
   m <- lapply(names(d), function(x) {
@@ -79,6 +91,15 @@ gwas_sim <- function(nid = 9000, nsnp = 20, bgx = 0.08, bxy = 0.2, buy = 0.4, bu
       return(NULL)
     }
   }) %>% bind_rows()
+  # Meta-analysis
+  beta_dir1 <- subset(m$b,m$what %in% "rep_sig")
+  beta_dir2 <- subset(m$b,m$what %in% "rep_meta")
+  se_dir1 <- subset(m$se,m$what %in% "rep_sig")
+  se_dir2 <- subset(m$se,m$what %in% "rep_meta")
+  tmp_m <- metagen(TE=c(beta_dir1, beta_dir2), seTE=c(se_dir1, se_dir2))
+  m[m$what=="rep_meta","b"] <- tmp_m$TE.fixed
+  m[m$what=="rep_meta","se"] <- tmp_m$seTE.fixed
+  m[m$what=="rep_meta","pval"] <- tmp_m$pval.fixed
   return(list(bias=bias, mr=m))
 }
 

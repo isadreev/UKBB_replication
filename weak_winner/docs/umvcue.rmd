@@ -10,6 +10,7 @@ suppressWarnings(suppressPackageStartupMessages({
   library(ggplot2)
   library(parallel)
   library(knitr)
+  library(tidyverse)
   args <- commandArgs(T)
   datadir <- args[1]
 }))
@@ -17,7 +18,7 @@ opts_chunk$set(cache=TRUE, echo=TRUE, message=FALSE, warning=FALSE)
 ```
 
 
-### Find GWAS parameters which will likely give high winner's curse
+### Find GWAS parameters which will likely give high winner's curse, simulate_gwasx(30000, 20, 0.025, 0.4), simulate_gwasx(3000, 20, 0.08, 0.4)
 
 
 ```{r}
