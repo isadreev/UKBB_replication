@@ -92,7 +92,7 @@ gwas_sim <- function(nid = 9000, nsnp = 20, bgx = 0.08, bxy = 0.2, buy = 0.4, bu
     }
   }) %>% bind_rows()
   # Meta-analysis
-  beta_dir1 <- subset(m$b,m$what %in% "rep_sig")
+  beta_dir1 <- subset(m,m$what %in% "rep_sig")$b
   beta_dir2 <- subset(m$b,m$what %in% "rep_meta")
   se_dir1 <- subset(m$se,m$what %in% "rep_sig")
   se_dir2 <- subset(m$se,m$what %in% "rep_meta")
