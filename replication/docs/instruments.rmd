@@ -179,6 +179,7 @@ sum(s1$nhalf_overestimated)
 sum(s1$ndisc_overestimated)
 sum(s1$nrepl_overestimated)
 ```
+
 Overestimated instruments
 
 
@@ -200,6 +201,14 @@ hist(s1$nhalf_overestimated / s1$nhalf, breaks=100)
 
 ```{r}
 hist(s1$nhalf_weak / s1$nhalf, breaks=100)
+```
+
+How many traits have only overestimated instruments
+
+```{r}
+s1 %>%
+  filter(ndisc != 0) %>%
+  summarise(a=sum(ndisc == ndisc_overestimated)/n(), b=sum(ndisc == ndisc_overestimated & ndisc <= 5)/sum(ndisc <= 5))
 ```
 
 
