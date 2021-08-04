@@ -80,13 +80,16 @@ p1
 ## AUROC
 
 ```{r}
+# Remove the next line after changes in replication.r!!!!!!!!!!!!! rep_meta -> meta_sig
+#res$what <- gsub('rep_meta', 'meta_sig', res$what)
+
 ress2 <- filter(res) %>%
   tidyr::separate(what, into=c("exposure_dataset", "instruments"), "_") %>%
   group_by(exposure_dataset, instruments, overlap, buy) %>%
   summarise(
     auroc = roc(bxy, pval)$auc %>% as.numeric(),
-    fdr = sum(pval < 0.05 & bxy == 0) / sum(bxy == 0),
-    power = sum(pval < 0.05 & bxy != 0) / sum(bxy != 0)
+    fdr = sum(pval < 0.05 & bxy == 0, na.rm=TRUE) / sum(bxy == 0, na.rm=TRUE),
+    power = sum(pval < 0.05 & bxy != 0, na.rm=TRUE) / sum(bxy != 0, na.rm=TRUE)
   )
 
 ggplot(ress2 %>% subset(instruments == "sig"), aes(x=fdr, y=power)) +

@@ -204,8 +204,8 @@ summary {
   datadir &lt;- args[1]
 }))
 opts_chunk$set(cache=TRUE, echo=TRUE, message=FALSE, warning=FALSE)</code></pre>
-<div id="find-gwas-parameters-which-will-likely-give-high-winners-curse-simulate_gwasx30000-20-0.025-0.4-simulate_gwasx3000-20-0.08-0.4" class="section level3">
-<h3>Find GWAS parameters which will likely give high winner's curse, simulate_gwasx(30000, 20, 0.025, 0.4), simulate_gwasx(3000, 20, 0.08, 0.4)</h3>
+<div id="find-gwas-parameters-which-will-likely-give-high-winners-curse" class="section level3">
+<h3>Find GWAS parameters which will likely give high winner's curse</h3>
 <pre class="r"><code>simulate_gwasx &lt;- function(nid, nsnp, bgx, bux)
 {
   g &lt;- make_geno(nid, nsnp, 0.5)
